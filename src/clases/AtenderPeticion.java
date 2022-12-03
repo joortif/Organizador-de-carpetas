@@ -1,6 +1,10 @@
+package clases;
+
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class AtenderPeticion implements Runnable{
 
@@ -21,7 +25,9 @@ public class AtenderPeticion implements Runnable{
 
     public void run() {
         try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.is));
-             BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.os))){
+             BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.os));
+             DataInputStream dis = new DataInputStream(this.is);){
+            int j;
             int i = Integer.parseInt(entrada.readLine());
             String nom = null;
             String psw;
@@ -59,8 +65,20 @@ public class AtenderPeticion implements Runnable{
                     new File("src/nube/" + nom).mkdirs();
                 }
             }
-            salida.write("Bienvenido " + nom);
+            salida.write("Bienvenido " + nom + "\r\n");
             salida.flush();
+            j= Integer.parseInt(entrada.readLine());
+            while (j != 10){
+                switch(j){
+                    case 1:
+                        subirFichero(entrada, nom, null, dis);
+                        break;
+                    case 2:
+                        break;
+
+                }
+                j = Integer.parseInt(entrada.readLine());
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -108,6 +126,41 @@ public class AtenderPeticion implements Runnable{
         return mensaje;
     }
 
+    private void subirFichero(BufferedReader entrada, String nom, String direc, DataInputStream dis){
+        try {
+            String ruta = entrada.readLine();
+            if (!ruta.equals("Salir")){
+                String nomF = nombreDesdeRuta(ruta);
+                long tam = Long.parseLong(entrada.readLine());
+                File fichNuevo;
+                if (direc == null){
+                    fichNuevo = new File("src/nube/"+ nom + "/" + nomF);
+                } else {
+                    fichNuevo = new File("src/nube/" + nom + "/" + direc + "/" + nomF);
+                }
+                if (tam > 1000000L){
 
+                } else {
+                    try (FileOutputStream fos = new FileOutputStream(fichNuevo)){
+                        byte[] buf = new byte[1024*256];
+                        int leidos = dis.read(buf);
+                        while (leidos != -1){
+                            fos.write(buf, 0, leidos);
+                            fos.flush();
+                            leidos = dis.read(buf);
+                        }
+                    }
+                }
+        }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    private String nombreDesdeRuta(String ruta){
+        String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
+        return trozos[trozos.length-1];
+    }
+
+}
 
