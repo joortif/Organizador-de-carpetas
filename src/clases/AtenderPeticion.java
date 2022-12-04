@@ -1,8 +1,9 @@
 package clases;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.Socket;
+import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -10,24 +11,22 @@ public class AtenderPeticion implements Runnable{
 
     private Socket socket;
     private ConcurrentHashMap<String, String> usuarios;
-    private InputStream is;
-    private OutputStream os;
     private static File FichUsuarios;
+    private static final DecimalFormat df = new DecimalFormat("0.00");
 
     public AtenderPeticion(Socket socket) throws IOException {
         FichUsuarios = new File("src\\usuarios\\Usuarios.txt");
         this.socket = socket;
         this.usuarios = this.cargarUsuarios(FichUsuarios);
-        this.is = socket.getInputStream();
-        this.os = socket.getOutputStream();
     }
 
 
     public void run() {
-        try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.is));
-             BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.os));
-             DataInputStream dis = new DataInputStream(this.is);){
-            int j;
+        try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+             BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
+             DataInputStream dis = new DataInputStream(this.socket.getInputStream());
+             ObjectOutputStream oos = new ObjectOutputStream((this.socket.getOutputStream()));
+             ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());){
             int i = Integer.parseInt(entrada.readLine());
             String nom = null;
             String psw;
@@ -67,19 +66,47 @@ public class AtenderPeticion implements Runnable{
             }
             salida.write("Bienvenido " + nom + "\r\n");
             salida.flush();
-            j= Integer.parseInt(entrada.readLine());
+            int j=0;
+            Usuario usuario;
             while (j != 10){
+                j= Integer.parseInt(entrada.readLine());
                 switch(j){
                     case 1:
                         subirFichero(entrada, nom, null, dis);
                         break;
                     case 2:
                         break;
-
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        String dir = entrada.readLine();
+                        usuario = (Usuario) ois.readObject();
+                        crearDirectorio(dir, usuario, salida);
+                        break;
+                    case 6:
+                        usuario = (Usuario) ois.readObject();
+                        mostrarDirec(usuario, salida);
+                        break;
+                    case 7:
+                        String dirC = entrada.readLine();
+                        usuario = (Usuario) ois.readObject();
+                        cambiarDirec(dirC, usuario, salida);
+                        oos.writeObject(usuario);
+                        oos.flush();
+                        break;
+                    case 8:
+                        usuario = (Usuario) ois.readObject();
+                        usuario.subirDirectorioPadre();
+                        oos.writeObject(usuario);
+                        oos.flush();
+                        break;
+                    default:
+                        break;
                 }
-                j = Integer.parseInt(entrada.readLine());
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
 
@@ -160,6 +187,79 @@ public class AtenderPeticion implements Runnable{
     private String nombreDesdeRuta(String ruta){
         String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
         return trozos[trozos.length-1];
+    }
+
+    private static void crearDirectorio(String nombre, Usuario u, BufferedWriter bw){
+        File nuevoDir = new File(u.getDirectorioCompleto() + "/" + nombre);
+        try{
+            if (!nuevoDir.exists()){
+                nuevoDir.mkdirs();
+                bw.write("Directorio creado correctamente\r\n");
+                bw.flush();
+            } else {
+                if (nuevoDir.isDirectory()){
+                    bw.write("Ya existe un directorio con ese nombre\r\n");
+                    bw.flush();
+                } else {
+                    bw.write("Directorio creado correctamente\r\n");
+                    bw.flush();
+                }
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private static void cambiarDirec(String dirC, Usuario usuario, BufferedWriter bw){
+        try {
+            File direc = new File(usuario.getDirectorioCompleto() + "/" + dirC);
+            if (direc.exists() && direc.isDirectory()){
+                usuario.setDirectorio(dirC);
+                bw.write("Se ha cambiado correctamente de directorio\r\n");
+                bw.flush();
+            } else {
+                bw.write("El directorio introducido no existe\r\n");
+                bw.flush();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private static void mostrarDirec(Usuario usuario, BufferedWriter bw){
+        try{
+            File directorio = new File(usuario.getDirectorioCompleto());
+            File[] listaF = directorio.listFiles();
+            long tamkB;
+            bw.write("Directorio: " + usuario.getDirectorio() + "\r\n");
+            bw.flush();
+            bw.write("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n" );
+            bw.flush();
+            if (listaF == null){
+                bw.write("\tDirectorio vacío \r\n");
+                bw.flush();
+            } else {
+                for (File f: listaF){
+                    if (f.isDirectory()){
+                        bw.write("<DIR> " + f.getName() + "\t" + "-" + "\t" + new Date(f.lastModified()) + "\r\n");
+                        bw.flush();
+                    } else {
+                        tamkB = (long) (f.length() * 0.097656);
+                        bw.write("\t" + f.getName() + "\t " + df.format(tamkB) + "\t" + new Date(f.lastModified()) + "\r\n");
+                        bw.flush();
+                    }
+
+                }
+            }
+            bw.write("\r\n");
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

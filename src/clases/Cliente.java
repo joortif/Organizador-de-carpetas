@@ -2,6 +2,7 @@ package clases;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +15,9 @@ public class Cliente {
         try (Socket socket = new Socket("localhost", 6666);
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());){
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())){
 
             Scanner s = new Scanner(System.in);
             int i=0;
@@ -40,13 +43,21 @@ public class Cliente {
                                 break;
 
                         }
+                        String bienvenida = null;
+                        Usuario user = null;
                         if (i!=3){
-                            System.out.println(br.readLine());
+                            bienvenida = br.readLine();
+                            System.out.println(bienvenida);
+                            String[] trozos = bienvenida.split(" ");
+                            String direcActual = "src/nube/"+ trozos[trozos.length-1];
+                            user = new Usuario(trozos[trozos.length-1]);
                         }
                         if (!error){
                             int j = 0;
                             do {
                                 try {
+                                    System.out.println("Actualmente estas en el directorio " + user.getDirectorio());
+                                    System.out.println("--------------------------------------------------------------");
                                     System.out.println("Elija la operación que desea realizar.");
                                     System.out.println("1. Subir un fichero");
                                     System.out.println("2. Subir una carpeta");
@@ -73,16 +84,42 @@ public class Cliente {
                                             case 4:
                                                 break;
                                             case 5:
-                                                crearDirec(s);
+                                                System.out.println("Introduce el nombre de la carpeta nueva: ");
+                                                bw.write(s.nextLine() + "\r\n");
+                                                bw.flush();
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                System.out.println(br.readLine());
                                                 break;
                                             case 6:
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                String linea = br.readLine();
+                                                while (!linea.equals("")){
+                                                    System.out.println(linea);
+                                                    linea =br.readLine();
+                                                }
                                                 break;
                                             case 7:
+                                                System.out.println("Introduce el nombre del directorio: ");
+                                                bw.write(s.nextLine() + "\r\n");
+                                                bw.flush();
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                System.out.println(br.readLine());
+                                                user = (Usuario) ois.readObject();
+                                                break;
+                                            case 8:
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                user = (Usuario) ois.readObject();
                                                 break;
                                         }
                                     }
                                 } catch (NumberFormatException nfe) {
                                     System.out.println("Introduce un numero!");
+                                } catch (ClassNotFoundException e) {
+                                    throw new RuntimeException(e);
                                 }
                             } while(j != 10);
                         }
@@ -166,6 +203,7 @@ public class Cliente {
                             ExecutorService pool = Executors.newFixedThreadPool(3);
                             long tercio = f.length()/3;
 
+
                         } else {
                             byte[] buf = new byte[1024*256];
                             leidos = fis.read(buf);
@@ -188,20 +226,6 @@ public class Cliente {
         }
 
     }
-
-    private static void crearDirec(Scanner s){
-        System.out.println("Introduce el nombre del directorio nuevo");
-        String nombreD = s.nextLine();
-        File f = new File();
-        if (){
-
-        }
-    }
-
-
-
-
-
 
 
 }
