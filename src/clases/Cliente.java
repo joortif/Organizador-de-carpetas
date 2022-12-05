@@ -44,13 +44,12 @@ public class Cliente {
                                 break;
 
                         }
-                        String bienvenida = null;
+                        String bienvenida;
                         Usuario user = null;
                         if (i!=3){
                             bienvenida = br.readLine();
                             System.out.println(bienvenida);
                             String[] trozos = bienvenida.split(" ");
-                            String direcActual = "src/nube/"+ trozos[trozos.length-1];
                             user = new Usuario(trozos[trozos.length-1]);
                         }
                         if (!error){

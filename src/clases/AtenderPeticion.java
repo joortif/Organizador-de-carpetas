@@ -22,11 +22,15 @@ public class AtenderPeticion implements Runnable{
 
 
     public void run() {
+        ObjectOutputStream oos= null;
+        ObjectInputStream ois = null;
         try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
              BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
-             DataInputStream dis = new DataInputStream(this.socket.getInputStream());
-             ObjectOutputStream oos = new ObjectOutputStream((this.socket.getOutputStream()));
-             ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream());){
+             DataInputStream dis = new DataInputStream(this.socket.getInputStream());){
+             oos = new ObjectOutputStream((this.socket.getOutputStream()));
+             ois = new ObjectInputStream(this.socket.getInputStream());
+
+
             int i = Integer.parseInt(entrada.readLine());
             String nom = null;
             String psw;
@@ -67,8 +71,8 @@ public class AtenderPeticion implements Runnable{
             salida.write("Bienvenido " + nom + "\r\n");
             salida.flush();
             int j=0;
-            Usuario usuario;
             while (j != 10){
+                Usuario usuario;
                 j= Integer.parseInt(entrada.readLine());
                 switch(j){
                     case 1:
@@ -108,6 +112,13 @@ public class AtenderPeticion implements Runnable{
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                oos.close();
+                ois.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 
@@ -166,23 +177,17 @@ public class AtenderPeticion implements Runnable{
                     fichNuevo = new File("src/nube/" + nom + "/" + direc + "/" + nomF);
                 }
                 if (tam > 1000000L){
-                    try {
-                        final CyclicBarrier barrera = new CyclicBarrier(4);
-                        ExecutorService pool = Executors.newFixedThreadPool(3);
+                    ExecutorService pool = Executors.newFixedThreadPool(3);
 
-                        HiloDescargador h1 = new HiloDescargador(entrada, barrera,ruta,dis);
-                        HiloDescargador h2 = new HiloDescargador(entrada, barrera,ruta,dis);
-                        HiloDescargador h3 = new HiloDescargador(entrada, barrera,ruta,dis);
+                    HiloDescargador h1 = new HiloDescargador(entrada,fichNuevo,dis);
+                    HiloDescargador h2 = new HiloDescargador(entrada,fichNuevo,dis);
+                    HiloDescargador h3 = new HiloDescargador(entrada,fichNuevo,dis);
 
-                        pool.execute(h1);
-                        pool.execute(h2);
-                        pool.execute(h3);
+                    pool.execute(h1);
+                    pool.execute(h2);
+                    pool.execute(h3);
 
-                        barrera.await();
-                        pool.shutdown();
-                    } catch (BrokenBarrierException | InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    pool.shutdown();
                 } else {
                     try (FileOutputStream fos = new FileOutputStream(fichNuevo)){
                         byte[] buf = new byte[1024*256];
