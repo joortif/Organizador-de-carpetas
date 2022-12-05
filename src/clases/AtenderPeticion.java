@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 public class AtenderPeticion implements Runnable{
@@ -166,7 +166,23 @@ public class AtenderPeticion implements Runnable{
                     fichNuevo = new File("src/nube/" + nom + "/" + direc + "/" + nomF);
                 }
                 if (tam > 1000000L){
+                    try {
+                        final CyclicBarrier barrera = new CyclicBarrier(4);
+                        ExecutorService pool = Executors.newFixedThreadPool(3);
 
+                        HiloDescargador h1 = new HiloDescargador(entrada, barrera,ruta,dis);
+                        HiloDescargador h2 = new HiloDescargador(entrada, barrera,ruta,dis);
+                        HiloDescargador h3 = new HiloDescargador(entrada, barrera,ruta,dis);
+
+                        pool.execute(h1);
+                        pool.execute(h2);
+                        pool.execute(h3);
+
+                        barrera.await();
+                        pool.shutdown();
+                    } catch (BrokenBarrierException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 } else {
                     try (FileOutputStream fos = new FileOutputStream(fichNuevo)){
                         byte[] buf = new byte[1024*256];

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -202,8 +203,16 @@ public class Cliente {
                             final CyclicBarrier barrera = new CyclicBarrier(4);
                             ExecutorService pool = Executors.newFixedThreadPool(3);
                             long tercio = f.length()/3;
+                            HiloSubidor h1 = new HiloSubidor(bw, barrera,nombreF,dos,0,tercio);
+                            HiloSubidor h2 = new HiloSubidor(bw, barrera,nombreF,dos,tercio+1,tercio*2);
+                            HiloSubidor h3 = new HiloSubidor(bw, barrera,nombreF,dos,(tercio*2)+1,f.length()-1);
 
+                            pool.execute(h1);
+                            pool.execute(h2);
+                            pool.execute(h3);
 
+                            barrera.await();
+                            pool.shutdown();
                         } else {
                             byte[] buf = new byte[1024*256];
                             leidos = fis.read(buf);
@@ -213,6 +222,8 @@ public class Cliente {
                                 leidos = fis.read(buf);
                             }
                         }
+                    } catch (BrokenBarrierException | InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
 
                 } else {

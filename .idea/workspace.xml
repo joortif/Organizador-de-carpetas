@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Subir fichero (pequeño) hecho">
-      <change afterPath="$PROJECT_DIR$/src/clases/Usuario.java" afterDir="false" />
+    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Crear dir, moverse de dir y mostrar dir hechos. Problema con objectoutputstreams?">
+      <change afterPath="$PROJECT_DIR$/src/clases/HiloDescargador.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/clases/HiloSubidor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/HiloSubidor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,6 +74,9 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SliceToolwindowSettings">
+    <option name="autoScroll" value="true" />
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -117,7 +121,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670084281851</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Crear dir, moverse de dir y mostrar dir hechos. Problema con objectoutputstreams?">
+      <created>1670168361561</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1670168361562</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -137,6 +148,23 @@
     <MESSAGE value="registro" />
     <MESSAGE value="registro y creacion de carpetas" />
     <MESSAGE value="Subir fichero (pequeño) hecho" />
-    <option name="LAST_COMMIT_MESSAGE" value="Subir fichero (pequeño) hecho" />
+    <MESSAGE value="Crear dir, moverse de dir y mostrar dir hechos. Problema con objectoutputstreams?" />
+    <option name="LAST_COMMIT_MESSAGE" value="Crear dir, moverse de dir y mostrar dir hechos. Problema con objectoutputstreams?" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/HiloSubidor.java</url>
+          <line>30</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/HiloDescargador.java</url>
+          <line>27</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
