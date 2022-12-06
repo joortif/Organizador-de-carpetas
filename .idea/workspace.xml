@@ -5,7 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/clases/HiloDescargador.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/HiloDescargador.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/clases/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Usuario.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +35,8 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/HUAWEI/Desktop/Universidad/Sistemas/Pract4/Pract4/src/net42/AtenderPeticion.java&quot;
   }
 }</component>
   <component name="RunManager" selected="Application.Cliente">
@@ -134,7 +135,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670234643963</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Haciendo descargar y subir ficheros grandes (3 hilos)">
+      <created>1670263160263</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1670263160263</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -167,14 +175,19 @@
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/HiloSubidor.java</url>
-          <line>26</line>
-          <option name="timeStamp" value="4" />
+          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
+          <line>83</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>96</line>
-          <option name="timeStamp" value="6" />
+          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
+          <line>98</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
+          <line>89</line>
+          <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

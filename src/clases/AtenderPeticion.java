@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
-public class AtenderPeticion implements Runnable{
+public class AtenderPeticion implements Runnable {
 
     private Socket socket;
     private ConcurrentHashMap<String, String> usuarios;
@@ -22,13 +22,13 @@ public class AtenderPeticion implements Runnable{
 
 
     public void run() {
-        ObjectOutputStream oos= null;
+        ObjectOutputStream oos = null;
         ObjectInputStream ois = null;
         try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
              BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
-             DataInputStream dis = new DataInputStream(this.socket.getInputStream());){
-             oos = new ObjectOutputStream((this.socket.getOutputStream()));
-             ois = new ObjectInputStream(this.socket.getInputStream());
+             DataInputStream dis = new DataInputStream(this.socket.getInputStream());) {
+            oos = new ObjectOutputStream((this.socket.getOutputStream()));
+            ois = new ObjectInputStream(this.socket.getInputStream());
 
 
             int i = Integer.parseInt(entrada.readLine());
@@ -70,15 +70,18 @@ public class AtenderPeticion implements Runnable{
             }
             salida.write("Bienvenido " + nom + "\r\n");
             salida.flush();
-            int j=0;
-            while (j != 10){
-                Usuario usuario;
-                j= Integer.parseInt(entrada.readLine());
-                switch(j){
+            int j = 0;
+            while (j != 10) {
+                Usuario usuario = null;
+                j = Integer.parseInt(entrada.readLine());
+                switch (j) {
                     case 1:
-                        subirFichero(entrada, nom, null, dis);
+                        usuario = (Usuario) ois.readObject();
+                        recibirFichero(entrada, usuario, dis);
                         break;
                     case 2:
+                        usuario = (Usuario) ois.readObject();
+                        recibirCarpeta(usuario, entrada, salida, dis);
                         break;
                     case 3:
                         break;
@@ -96,9 +99,8 @@ public class AtenderPeticion implements Runnable{
                     case 7:
                         String dirC = entrada.readLine();
                         usuario = (Usuario) ois.readObject();
-                        cambiarDirec(dirC, usuario, salida);
-                        oos.writeObject(usuario);
-                        oos.flush();
+                        cambiarDirec(dirC, usuario, salida, oos);
+
                         break;
                     case 8:
                         usuario = (Usuario) ois.readObject();
@@ -114,8 +116,10 @@ public class AtenderPeticion implements Runnable{
             throw new RuntimeException(e);
         } finally {
             try {
-                oos.close();
-                ois.close();
+                if (oos != null) {
+                    oos.close();
+                    ois.close();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -124,11 +128,11 @@ public class AtenderPeticion implements Runnable{
 
     }
 
-    private ConcurrentHashMap<String, String> cargarUsuarios(File fich){
+    private ConcurrentHashMap<String, String> cargarUsuarios(File fich) {
         ConcurrentHashMap<String, String> listaU = new ConcurrentHashMap<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fich)))){
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fich)))) {
             String linea = br.readLine();
-            while (linea != null){
+            while (linea != null) {
                 String[] usrYpsw = linea.split("-");
                 listaU.put(usrYpsw[0], usrYpsw[1]);
                 linea = br.readLine();
@@ -140,23 +144,23 @@ public class AtenderPeticion implements Runnable{
 
     }
 
-    private String compruebaDatos(String usr, String psw){
+    private String compruebaDatos(String usr, String psw) {
         String mensaje;
-        if (this.usuarios.containsKey(usr)){
-            if (this.usuarios.get(usr).equals(psw)){
+        if (this.usuarios.containsKey(usr)) {
+            if (this.usuarios.get(usr).equals(psw)) {
                 mensaje = "Correcto\r\n";
             } else {
                 mensaje = "Contraseña incorrecta. \r\n";
             }
         } else {
-            mensaje ="Nombre de usuario incorrecto. \r\n";
+            mensaje = "Nombre de usuario incorrecto. \r\n";
         }
         return mensaje;
     }
 
-    private String altaUsuario(String usr){
+    private String altaUsuario(String usr) {
         String mensaje;
-        if (this.usuarios.containsKey(usr)){
+        if (this.usuarios.containsKey(usr)) {
             mensaje = "El usuario ya existe en el sistema. \r\n";
         } else {
             mensaje = "Correcto\r\n";
@@ -164,61 +168,67 @@ public class AtenderPeticion implements Runnable{
         return mensaje;
     }
 
-    private void subirFichero(BufferedReader entrada, String nom, String direc, DataInputStream dis){
+    private void recibirFichero(BufferedReader br,Usuario u, DataInputStream dis) {
         try {
-            String ruta = entrada.readLine();
-            if (!ruta.equals("Salir")){
-                String nomF = nombreDesdeRuta(ruta);
-                long tam = Long.parseLong(entrada.readLine());
-                File fichNuevo;
-                if (direc == null){
-                    fichNuevo = new File("src/nube/"+ nom + "/" + nomF);
-                } else {
-                    fichNuevo = new File("src/nube/" + nom + "/" + direc + "/" + nomF);
+            String ruta = br.readLine();
+            String nomF = nombreDesdeRuta(ruta);
+            File fichNuevo;
+            fichNuevo = new File(u.getDirectorioCompleto() + "/" + nomF);
+            try (FileOutputStream fos = new FileOutputStream(fichNuevo)) {
+                byte[] buf = new byte[1024 * 256];
+                int leidos = dis.read(buf);
+                while (leidos != -1) {
+                    fos.write(buf, 0, leidos);
+                    fos.flush();
+                    leidos = dis.read(buf);
                 }
-                if (tam > 1000000L){
-                    ExecutorService pool = Executors.newFixedThreadPool(3);
-
-                    HiloDescargador h1 = new HiloDescargador(entrada,fichNuevo,dis);
-                    HiloDescargador h2 = new HiloDescargador(entrada,fichNuevo,dis);
-                    HiloDescargador h3 = new HiloDescargador(entrada,fichNuevo,dis);
-
-                    pool.execute(h1);
-                    pool.execute(h2);
-                    pool.execute(h3);
-
-                    pool.shutdown();
-                } else {
-                    try (FileOutputStream fos = new FileOutputStream(fichNuevo)){
-                        byte[] buf = new byte[1024*256];
-                        int leidos = dis.read(buf);
-                        while (leidos != -1){
-                            fos.write(buf, 0, leidos);
-                            fos.flush();
-                            leidos = dis.read(buf);
-                        }
-                    }
-                }
-        }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
-    private String nombreDesdeRuta(String ruta){
+    private void recibirCarpeta(Usuario u, BufferedReader br, BufferedWriter bw, DataInputStream dis) {
+        try {
+            String dir = br.readLine();
+            while (!dir.equals("")) {
+                if (dir.startsWith("<D>")){
+                    File dirNube = new File(dir);
+                    if (dirNube.mkdir()){
+                        bw.write("OK\r\n");
+                        bw.flush();
+                    } else {
+                        bw.write("ERROR\r\n");
+                        bw.flush();
+                    }
+                } else {
+                    recibirFichero(br, u, dis);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private String nombreDesdeRuta(String ruta) {
         String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
-        return trozos[trozos.length-1];
+        return trozos[trozos.length - 1];
     }
 
-    private static void crearDirectorio(String nombre, Usuario u, BufferedWriter bw){
+    private static void crearDirectorio(String nombre, Usuario u, BufferedWriter bw) {
         File nuevoDir = new File(u.getDirectorioCompleto() + "/" + nombre);
-        try{
-            if (!nuevoDir.exists()){
+        try {
+            if (!nuevoDir.exists()) {
                 nuevoDir.mkdirs();
                 bw.write("Directorio creado correctamente\r\n");
                 bw.flush();
             } else {
-                if (nuevoDir.isDirectory()){
+                if (nuevoDir.isDirectory()) {
                     bw.write("Ya existe un directorio con ese nombre\r\n");
                     bw.flush();
                 } else {
@@ -234,10 +244,10 @@ public class AtenderPeticion implements Runnable{
 
     }
 
-    private static void cambiarDirec(String dirC, Usuario usuario, BufferedWriter bw){
+    private static void cambiarDirec(String dirC, Usuario usuario, BufferedWriter bw, ObjectOutputStream oos) {
         try {
             File direc = new File(usuario.getDirectorioCompleto() + "/" + dirC);
-            if (direc.exists() && direc.isDirectory()){
+            if (direc.exists() && direc.isDirectory()) {
                 usuario.setDirectorio(dirC);
                 bw.write("Se ha cambiado correctamente de directorio\r\n");
                 bw.flush();
@@ -245,27 +255,29 @@ public class AtenderPeticion implements Runnable{
                 bw.write("El directorio introducido no existe\r\n");
                 bw.flush();
             }
+            oos.writeObject(usuario);
+            oos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    private static void mostrarDirec(Usuario usuario, BufferedWriter bw){
-        try{
+    private static void mostrarDirec(Usuario usuario, BufferedWriter bw) {
+        try {
             File directorio = new File(usuario.getDirectorioCompleto());
             File[] listaF = directorio.listFiles();
             long tamkB;
             bw.write("Directorio: " + usuario.getDirectorio() + "\r\n");
             bw.flush();
-            bw.write("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n" );
+            bw.write("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n");
             bw.flush();
-            if (listaF == null){
+            if (listaF == null) {
                 bw.write("\tDirectorio vacío \r\n");
                 bw.flush();
             } else {
-                for (File f: listaF){
-                    if (f.isDirectory()){
+                for (File f : listaF) {
+                    if (f.isDirectory()) {
                         bw.write("<DIR> " + f.getName() + "\t" + "-" + "\t" + new Date(f.lastModified()) + "\r\n");
                         bw.flush();
                     } else {
