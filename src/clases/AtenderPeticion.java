@@ -13,93 +13,90 @@ public class AtenderPeticion implements Runnable {
     private ConcurrentHashMap<String, String> usuarios;
     private static File FichUsuarios;
     private static final DecimalFormat df = new DecimalFormat("0.00");
+    private static DataInputStream dis;
+    private static DataOutputStream dos;
 
     public AtenderPeticion(Socket socket) throws IOException {
         FichUsuarios = new File("src\\usuarios\\Usuarios.txt");
         this.socket = socket;
         this.usuarios = this.cargarUsuarios(FichUsuarios);
+        dis = new DataInputStream(this.socket.getInputStream());
+        dos = new DataOutputStream(this.socket.getOutputStream());
     }
 
 
     public void run() {
         ObjectOutputStream oos = null;
         ObjectInputStream ois = null;
-        try (BufferedReader entrada = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-             BufferedWriter salida = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
-             DataInputStream dis = new DataInputStream(this.socket.getInputStream());) {
+        try (PrintStream ps = new PrintStream(this.socket.getOutputStream(), true)){
             oos = new ObjectOutputStream((this.socket.getOutputStream()));
             ois = new ObjectInputStream(this.socket.getInputStream());
 
 
-            int i = Integer.parseInt(entrada.readLine());
+            int i = Integer.parseInt(dis.readLine());
             String nom = null;
             String psw;
             String mensaje;
             switch (i) {
                 case 1 -> {
-                    nom = entrada.readLine();
-                    psw = entrada.readLine();
+                    nom = dis.readLine();
+                    psw = dis.readLine();
                     mensaje = compruebaDatos(nom, psw);
                     while (!mensaje.equals("Correcto\r\n")) {
-                        salida.write(mensaje);
-                        salida.flush();
-                        nom = entrada.readLine();
-                        psw = entrada.readLine();
+                        ps.print(mensaje);
+                        nom = dis.readLine();
+                        psw = dis.readLine();
                         mensaje = compruebaDatos(nom, psw);
                     }
-                    salida.write(mensaje);
-                    salida.flush();
+                    ps.print(mensaje);
                 }
                 case 2 -> {
-                    nom = entrada.readLine();
+                    nom = dis.readLine();
                     mensaje = altaUsuario(nom);
                     while (!mensaje.equals("Correcto\r\n")) {
-                        salida.write(mensaje);
-                        salida.flush();
-                        nom = entrada.readLine();
+                        ps.print(mensaje);
+                        nom = dis.readLine();
                         mensaje = altaUsuario(nom);
                     }
-                    salida.write(mensaje);
-                    salida.flush();
-                    psw = entrada.readLine();
+                    ps.print(mensaje);
+                    psw = dis.readLine();
                     PrintWriter outUsu = new PrintWriter(new BufferedWriter(new FileWriter(FichUsuarios, true)), true);
                     outUsu.println(nom + "-" + psw);
                     outUsu.close();
                     new File("src/nube/" + nom).mkdirs();
                 }
             }
-            salida.write("Bienvenido " + nom + "\r\n");
-            salida.flush();
+            ps.print("Bienvenido " + nom + "\r\n");
             int j = 0;
             while (j != 10) {
                 Usuario usuario = null;
-                j = Integer.parseInt(entrada.readLine());
+                j = Integer.parseInt(dis.readLine());
                 switch (j) {
                     case 1:
                         usuario = (Usuario) ois.readObject();
-                        recibirFichero(entrada, usuario, dis);
+                        recibirFichero(usuario);
                         break;
                     case 2:
                         usuario = (Usuario) ois.readObject();
-                        recibirCarpeta(usuario, entrada, salida, dis);
+                        recibirCarpeta(usuario);
                         break;
                     case 3:
                         break;
                     case 4:
                         break;
                     case 5:
-                        String dir = entrada.readLine();
+                        String dir = dis.readLine();
                         usuario = (Usuario) ois.readObject();
-                        crearDirectorio(dir, usuario, salida);
+                        crearDirectorio(dir, usuario);
                         break;
                     case 6:
                         usuario = (Usuario) ois.readObject();
-                        mostrarDirec(usuario, salida);
+                        mostrarDirec(usuario);
                         break;
                     case 7:
-                        String dirC = entrada.readLine();
+                        String dirC = dis.readLine();
                         usuario = (Usuario) ois.readObject();
-                        cambiarDirec(dirC, usuario, salida, oos);
+                        cambiarDirec(dirC, usuario, oos);
 
                         break;
                     case 8:
@@ -168,20 +165,18 @@ public class AtenderPeticion implements Runnable {
         return mensaje;
     }
 
-    private void recibirFichero(BufferedReader br,Usuario u, DataInputStream dis) {
+    private void recibirFichero(Usuario u) {
         try {
-            String ruta = br.readLine();
+            String ruta = dis.readLine();
             String nomF = nombreDesdeRuta(ruta);
             File fichNuevo;
             fichNuevo = new File(u.getDirectorioCompleto() + "/" + nomF);
+            long tam = Long.parseLong(dis.readLine());
             try (FileOutputStream fos = new FileOutputStream(fichNuevo)) {
-                byte[] buf = new byte[1024 * 256];
-                int leidos = dis.read(buf);
-                while (leidos != -1) {
-                    fos.write(buf, 0, leidos);
-                    fos.flush();
-                    leidos = dis.read(buf);
-                }
+                byte[] buf = new byte[(int) (tam + 1)];
+                dis.read(buf, 0, buf.length);
+                fos.write(buf, 0, buf.length);
+                fos.flush();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -191,21 +186,21 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private void recibirCarpeta(Usuario u, BufferedReader br, BufferedWriter bw, DataInputStream dis) {
+    private void recibirCarpeta(Usuario u) {
         try {
-            String dir = br.readLine();
+            String dir = dis.readLine();
             while (!dir.equals("")) {
                 if (dir.startsWith("<D>")){
                     File dirNube = new File(dir);
                     if (dirNube.mkdir()){
-                        bw.write("OK\r\n");
-                        bw.flush();
+                        dos.writeBytes("OK\r\n");
+                        dos.flush();
                     } else {
-                        bw.write("ERROR\r\n");
-                        bw.flush();
+                        dos.writeBytes("ERROR\r\n");
+                        dos.flush();
                     }
                 } else {
-                    recibirFichero(br, u, dis);
+                    recibirFichero(u);
                 }
             }
         } catch (IOException e) {
@@ -220,20 +215,20 @@ public class AtenderPeticion implements Runnable {
         return trozos[trozos.length - 1];
     }
 
-    private static void crearDirectorio(String nombre, Usuario u, BufferedWriter bw) {
+    private static void crearDirectorio(String nombre, Usuario u) {
         File nuevoDir = new File(u.getDirectorioCompleto() + "/" + nombre);
         try {
             if (!nuevoDir.exists()) {
                 nuevoDir.mkdirs();
-                bw.write("Directorio creado correctamente\r\n");
-                bw.flush();
+                dos.writeBytes("Directorio creado correctamente\r\n");
+                dos.flush();
             } else {
                 if (nuevoDir.isDirectory()) {
-                    bw.write("Ya existe un directorio con ese nombre\r\n");
-                    bw.flush();
+                    dos.writeBytes("Ya existe un directorio con ese nombre\r\n");
+                    dos.flush();
                 } else {
-                    bw.write("Directorio creado correctamente\r\n");
-                    bw.flush();
+                    dos.writeBytes("Directorio creado correctamente\r\n");
+                    dos.flush();
                 }
 
             }
@@ -244,16 +239,16 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private static void cambiarDirec(String dirC, Usuario usuario, BufferedWriter bw, ObjectOutputStream oos) {
+    private static void cambiarDirec(String dirC, Usuario usuario, ObjectOutputStream oos) {
         try {
             File direc = new File(usuario.getDirectorioCompleto() + "/" + dirC);
             if (direc.exists() && direc.isDirectory()) {
                 usuario.setDirectorio(dirC);
-                bw.write("Se ha cambiado correctamente de directorio\r\n");
-                bw.flush();
+                dos.writeBytes("Se ha cambiado correctamente de directorio\r\n");
+                dos.flush();
             } else {
-                bw.write("El directorio introducido no existe\r\n");
-                bw.flush();
+                dos.writeBytes("El directorio introducido no existe\r\n");
+                dos.flush();
             }
             oos.writeObject(usuario);
             oos.flush();
@@ -263,33 +258,33 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private static void mostrarDirec(Usuario usuario, BufferedWriter bw) {
+    private static void mostrarDirec(Usuario usuario) {
         try {
             File directorio = new File(usuario.getDirectorioCompleto());
             File[] listaF = directorio.listFiles();
             long tamkB;
-            bw.write("Directorio: " + usuario.getDirectorio() + "\r\n");
-            bw.flush();
-            bw.write("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n");
-            bw.flush();
+            dos.writeBytes("Directorio: " + usuario.getDirectorio() + "\r\n");
+            dos.flush();
+            dos.writeBytes("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n");
+            dos.flush();
             if (listaF == null) {
-                bw.write("\tDirectorio vacío \r\n");
-                bw.flush();
+                dos.writeBytes("\tDirectorio vacío \r\n");
+                dos.flush();
             } else {
                 for (File f : listaF) {
                     if (f.isDirectory()) {
-                        bw.write("<DIR> " + f.getName() + "\t" + "-" + "\t" + new Date(f.lastModified()) + "\r\n");
-                        bw.flush();
+                        dos.writeBytes("<DIR> " + f.getName() + "\t" + "-" + "\t" + new Date(f.lastModified()) + "\r\n");
+                        dos.flush();
                     } else {
                         tamkB = (long) (f.length() * 0.097656);
-                        bw.write("\t" + f.getName() + "\t " + df.format(tamkB) + "\t" + new Date(f.lastModified()) + "\r\n");
-                        bw.flush();
+                        dos.writeBytes("\t" + f.getName() + "\t " + df.format(tamkB) + "\t" + new Date(f.lastModified()) + "\r\n");
+                        dos.flush();
                     }
 
                 }
             }
-            bw.write("\r\n");
-            bw.flush();
+            dos.writeBytes("\r\n");
+            dos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

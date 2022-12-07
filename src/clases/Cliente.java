@@ -18,9 +18,8 @@ public class Cliente {
         ObjectOutputStream oos = null;
 
         try (Socket socket = new Socket("localhost", 6666);
-             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-             DataOutputStream dos = new DataOutputStream(socket.getOutputStream())) {
+             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+             DataInputStream dis = new DataInputStream(socket.getInputStream())) {
 
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
@@ -34,15 +33,15 @@ public class Cliente {
                     System.out.println("Bienvenido, ¿Que operacion desea realizar? 1:Iniciar sesión, 2:Registrarse, 3:Salir");
                     i = Integer.parseInt(s.nextLine());
                     if (i > 0 && i < 4) {
-                        bw.write(i + "\r\n");
-                        bw.flush();
+                        dos.writeBytes(i + "\r\n");
+                        dos.flush();
                         switch (i) {
                             case 1:
-                                registro(s, bw, br);
+                                registro(s, dos, dis);
                                 error = false;
                                 break;
                             case 2:
-                                alta(s, bw, br);
+                                alta(s, dos, dis);
                                 error = false;
                                 break;
                             case 3:
@@ -52,7 +51,7 @@ public class Cliente {
                         String bienvenida;
                         Usuario user = null;
                         if (i != 3) {
-                            bienvenida = br.readLine();
+                            bienvenida = dis.readLine();
                             System.out.println(bienvenida);
                             String[] trozos = bienvenida.split(" ");
                             user = new Usuario(trozos[trozos.length - 1]);
@@ -78,8 +77,8 @@ public class Cliente {
                                     j = Integer.parseInt(s.nextLine());
 
                                     if (j > 0 && j < 11) {
-                                        bw.write(j + "\r\n");
-                                        bw.flush();
+                                        dos.writeBytes(j + "\r\n");
+                                        dos.flush();
                                         switch (j) {
                                             case 1:
                                                 oos.writeObject(user);
@@ -87,7 +86,7 @@ public class Cliente {
                                                 System.out.println("Introduce la ruta del fichero a subir o 'Salir' para salir.");
                                                 String nombreF = s.nextLine();
                                                 if (!nombreF.equalsIgnoreCase("salir")) {
-                                                    subirFichero(nombreF, dos, bw);
+                                                    subirFichero(nombreF, dos);
                                                 }
                                                 break;
                                             case 2:
@@ -96,9 +95,9 @@ public class Cliente {
                                                 System.out.println("Introduce la ruta de la carpeta a subir o 'Salir' para salir.");
                                                 String nombreD = s.nextLine();
                                                 if (!nombreD.equalsIgnoreCase("salir")) {
-                                                    subirCarpeta(user.getDirectorioCompleto(), obtenerNombreDesdeRuta(nombreD), nombreD, dos, bw, br);
-                                                    bw.write("");
-                                                    bw.flush();
+                                                    subirCarpeta(user.getDirectorioCompleto(), obtenerNombreDesdeRuta(nombreD), nombreD, dos, dis);
+                                                    dos.writeBytes("");
+                                                    dos.flush();
                                                 }
                                                 break;
                                             case 3:
@@ -108,30 +107,30 @@ public class Cliente {
                                             case 5:
                                                 System.out.println("Introduce el nombre de la carpeta nueva: ");
                                                 input = s.nextLine();
-                                                bw.write(input);
-                                                bw.flush();
+                                                dos.writeBytes(input);
+                                                dos.flush();
                                                 oos.writeObject(user);
                                                 oos.flush();
-                                                System.out.println(br.readLine());
+                                                System.out.println(dis.readLine());
                                                 break;
                                             case 6:
                                                 oos.writeObject(user);
                                                 oos.flush();
-                                                String linea = br.readLine();
+                                                String linea = dis.readLine();
                                                 while (!linea.equals("")) {
                                                     System.out.println(linea);
-                                                    linea = br.readLine();
+                                                    linea = dis.readLine();
                                                 }
 
                                                 break;
                                             case 7:
                                                 System.out.println("Introduce el nombre del directorio: ");
                                                 input = s.nextLine();
-                                                bw.write(input + "\r\n");
-                                                bw.flush();
+                                                dos.writeBytes(input + "\r\n");
+                                                dos.flush();
                                                 oos.writeObject(user);
                                                 oos.flush();
-                                                System.out.println(br.readLine());
+                                                System.out.println(dis.readLine());
                                                 user = (Usuario) ois.readObject();
                                                 break;
                                             case 8:
@@ -166,25 +165,25 @@ public class Cliente {
         }
     }
 
-    private static void registro(Scanner s, BufferedWriter bw, BufferedReader br) {
+    private static void registro(Scanner s, DataOutputStream dos, DataInputStream dis) {
         String respuesta;
         try {
             System.out.println("Introduce el nombre de usuario: ");
-            bw.write(s.nextLine() + "\r\n");
-            bw.flush();
+            dos.writeBytes(s.nextLine() + "\r\n");
+            dos.flush();
             System.out.println("Introduce la contraseña: ");
-            bw.write(s.nextLine() + "\r\n");
-            bw.flush();
-            respuesta = br.readLine();
+            dos.writeBytes(s.nextLine() + "\r\n");
+            dos.flush();
+            respuesta = dis.readLine();
             while (!respuesta.equals("Correcto")) {
                 System.out.println(respuesta);
                 System.out.println("Introduce el nombre de usuario: ");
-                bw.write(s.nextLine() + "\r\n");
-                bw.flush();
+                dos.writeBytes(s.nextLine() + "\r\n");
+                dos.flush();
                 System.out.println("Introduce la contraseña: ");
-                bw.write(s.nextLine() + "\r\n");
-                bw.flush();
-                respuesta = br.readLine();
+                dos.writeBytes(s.nextLine() + "\r\n");
+                dos.flush();
+                respuesta = dis.readLine();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -193,50 +192,48 @@ public class Cliente {
 
     }
 
-    private static void alta(Scanner s, BufferedWriter bw, BufferedReader br) {
+    private static void alta(Scanner s, DataOutputStream dos, DataInputStream dis) {
         String respuesta;
         try {
             System.out.println("Introduce el nombre del nuevo usuario: ");
-            bw.write(s.nextLine() + "\r\n");
-            bw.flush();
-            respuesta = br.readLine();
+            dos.writeBytes(s.nextLine() + "\r\n");
+            dos.flush();
+            respuesta = dis.readLine();
             while (!respuesta.equals("Correcto")) {
                 System.out.println(respuesta);
                 System.out.println("Introduce el nombre del nuevo usuario: ");
-                bw.write(s.nextLine() + "\r\n");
-                bw.flush();
-                respuesta = br.readLine();
+                dos.writeBytes(s.nextLine() + "\r\n");
+                dos.flush();
+                respuesta = dis.readLine();
             }
             System.out.println("Introduce la contraseña: ");
-            bw.write(s.nextLine() + "\r\n");
-            bw.flush();
+            dos.writeBytes(s.nextLine() + "\r\n");
+            dos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static void subirFichero(String nombreF, DataOutputStream dos, BufferedWriter bw) {
+    private static void subirFichero(String nombreF, DataOutputStream dos) {
         try {
             File f = new File(nombreF);
             if (f.exists()) {
-                bw.write(nombreF + "\r\n");
-                bw.flush();
-                int leidos;
+                dos.writeBytes(nombreF + "\r\n");
+                dos.flush();
+                dos.writeBytes(f.length() + "\r\n");
+                dos.flush();
                 try (FileInputStream fis = new FileInputStream(f)) {
-                    byte[] buf = new byte[1024 * 256];
-                    leidos = fis.read(buf);
-                    while (leidos != -1) {
-                        dos.write(buf, 0, leidos);
-                        dos.flush();
-                        leidos = fis.read(buf);
-                    }
+                    byte[] buf = new byte[(int) (f.length() +1)];
+                    fis.read(buf,0,buf.length);
+                    dos.write(buf, 0, buf.length);
+                    dos.flush();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
             } else {
                 System.out.println("El fichero introducido no existe en el disco duro.");
-                bw.write("Salir\r\n");
-                bw.flush();
+                dos.writeBytes("Salir\r\n");
+                dos.flush();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -245,7 +242,7 @@ public class Cliente {
     }
 
     private static void subirCarpeta(String pathDirNube, String pathDirPadreNube, String pathDirLocal,
-                                     DataOutputStream dos, BufferedWriter bw, BufferedReader br) {
+                                     DataOutputStream dos, DataInputStream dis) {
         File dirLocal = new File(pathDirLocal);
         File[] subFichs = dirLocal.listFiles();
         if (subFichs != null && subFichs.length > 0) {
@@ -259,9 +256,9 @@ public class Cliente {
 
                 if (item.isFile()) {
                     System.out.println("Subiendo fichero: " + item.getAbsolutePath());
-                    subirFichero(item.getAbsolutePath(), dos, bw);
+                    subirFichero(item.getAbsolutePath(), dos);
                 } else {
-                    if (crearDirectorioRemoto(pathFichNube, bw, br)) {
+                    if (crearDirectorioRemoto(pathFichNube, dos, dis)) {
                         System.out.println("Directorio creado correctamente en la nube");
                     }
                     String padre = pathDirPadreNube + "/" + item.getName();
@@ -269,7 +266,7 @@ public class Cliente {
                         padre = item.getName();
                     }
                     pathDirLocal = item.getAbsolutePath();
-                    subirCarpeta(pathDirNube, padre, pathDirLocal, dos, bw, br);
+                    subirCarpeta(pathDirNube, padre, pathDirLocal, dos, dis);
 
                 }
             }
@@ -283,11 +280,11 @@ public class Cliente {
         return trozos[trozos.length - 1];
     }
 
-    private static boolean crearDirectorioRemoto(String pathAbsoluto, BufferedWriter bw, BufferedReader br) {
+    private static boolean crearDirectorioRemoto(String pathAbsoluto, DataOutputStream dos, DataInputStream dis) {
         try {
-            bw.write("<D> " + pathAbsoluto + "\r\n");
-            bw.flush();
-            if (br.readLine().equals("OK")) {
+            dos.writeBytes("<D> " + pathAbsoluto + "\r\n");
+            dos.flush();
+            if (dis.readLine().equals("OK")) {
                 return true;
             } else {
                 return false;
