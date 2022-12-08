@@ -63,22 +63,33 @@ public class AtenderPeticion implements Runnable {
                     PrintWriter outUsu = new PrintWriter(new BufferedWriter(new FileWriter(FichUsuarios, true)), true);
                     outUsu.println(nom + "-" + psw);
                     outUsu.close();
-                    new File("src/nube/" + nom).mkdirs();
+                    new File("src\\nube\\" + nom).mkdirs();
                 }
             }
             ps.print("Bienvenido " + nom + "\r\n");
             int j = 0;
             while (j != 10) {
-                Usuario usuario = null;
+                Usuario usuario;
                 j = Integer.parseInt(dis.readLine());
                 switch (j) {
                     case 1:
                         usuario = (Usuario) ois.readObject();
-                        recibirFichero(usuario);
+                        String nombre = dis.readLine();
+                        if (!nombre.equals("Salir")){
+                            recibirFichero(nombre, "", usuario);
+                        }
                         break;
                     case 2:
                         usuario = (Usuario) ois.readObject();
-                        recibirCarpeta(usuario);
+                        File dirBase = new File(dis.readLine());
+                        if (dirBase.mkdir()){
+                            dos.writeBytes("OK\r\n");
+                            dos.flush();
+                        } else {
+                            dos.writeBytes("ERROR\r\n");
+                            dos.flush();
+                        }
+                        recibirCarpeta(usuario, dirBase.getName());
                         break;
                     case 3:
                         break;
@@ -165,15 +176,18 @@ public class AtenderPeticion implements Runnable {
         return mensaje;
     }
 
-    private void recibirFichero(Usuario u) {
+    private void recibirFichero(String ruta, String dir, Usuario u) {
         try {
-            String ruta = dis.readLine();
-            String nomF = nombreDesdeRuta(ruta);
-            File fichNuevo;
-            fichNuevo = new File(u.getDirectorioCompleto() + "/" + nomF);
+            String nomF;
+            if (!dir.equals("")){
+                nomF = convertirARutaNube(ruta, dir);
+            } else {
+                nomF = nombreDesdeRuta(ruta);
+            }
+            File fichNuevo = new File(u.getDirectorioCompleto() + "\\" + nomF);
             long tam = Long.parseLong(dis.readLine());
             try (FileOutputStream fos = new FileOutputStream(fichNuevo)) {
-                byte[] buf = new byte[(int) (tam + 1)];
+                byte[] buf = new byte[(int) (tam)];
                 dis.read(buf, 0, buf.length);
                 fos.write(buf, 0, buf.length);
                 fos.flush();
@@ -186,12 +200,14 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private void recibirCarpeta(Usuario u) {
+    private void recibirCarpeta(Usuario u, String dirRaiz) {
         try {
-            String dir = dis.readLine();
-            while (!dir.equals("")) {
-                if (dir.startsWith("<D>")){
-                    File dirNube = new File(dir);
+            String dir = dirRaiz;
+            String nom = dis.readLine();
+            while (!nom.equals("")) {
+                if (esDirectorio(nom)){
+                    dir = dir + "\\" + nombreDesdeRuta(nom);
+                    File dirNube = new File(nom);
                     if (dirNube.mkdir()){
                         dos.writeBytes("OK\r\n");
                         dos.flush();
@@ -200,8 +216,9 @@ public class AtenderPeticion implements Runnable {
                         dos.flush();
                     }
                 } else {
-                    recibirFichero(u);
+                    recibirFichero(nom, dir, u);
                 }
+                nom = dis.readLine();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -215,8 +232,20 @@ public class AtenderPeticion implements Runnable {
         return trozos[trozos.length - 1];
     }
 
+    private boolean esDirectorio(String ruta) {
+        String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
+        String nombre = trozos[trozos.length -1];
+        String[] archivoYExt = nombre.split("\\.");
+        return archivoYExt.length <= 1;
+    }
+
+    private String convertirARutaNube(String ruta, String dir){
+        int i = ruta.indexOf(dir);
+        return ruta.substring(i);
+    }
+
     private static void crearDirectorio(String nombre, Usuario u) {
-        File nuevoDir = new File(u.getDirectorioCompleto() + "/" + nombre);
+        File nuevoDir = new File(u.getDirectorioCompleto() + "\\" + nombre);
         try {
             if (!nuevoDir.exists()) {
                 nuevoDir.mkdirs();
@@ -241,7 +270,7 @@ public class AtenderPeticion implements Runnable {
 
     private static void cambiarDirec(String dirC, Usuario usuario, ObjectOutputStream oos) {
         try {
-            File direc = new File(usuario.getDirectorioCompleto() + "/" + dirC);
+            File direc = new File(usuario.getDirectorioCompleto() + "\\" + dirC);
             if (direc.exists() && direc.isDirectory()) {
                 usuario.setDirectorio(dirC);
                 dos.writeBytes("Se ha cambiado correctamente de directorio\r\n");
@@ -267,7 +296,9 @@ public class AtenderPeticion implements Runnable {
             dos.flush();
             dos.writeBytes("\t Nombre \t  Tamaño(kB) \t Fecha de última modificación \r\n");
             dos.flush();
-            if (listaF == null) {
+            dos.writeBytes("********************************************************************\r\n");
+            dos.flush();
+            if (listaF == null || listaF.length == 0) {
                 dos.writeBytes("\tDirectorio vacío \r\n");
                 dos.flush();
             } else {

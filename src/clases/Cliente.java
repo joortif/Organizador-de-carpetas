@@ -3,10 +3,6 @@ package clases;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public class Cliente {
@@ -61,6 +57,7 @@ public class Cliente {
                             String input;
                             do {
                                 try {
+                                    System.out.println("--------------------------------------------------------------");
                                     System.out.println("Actualmente estas en el directorio " + user.getDirectorio());
                                     System.out.println("--------------------------------------------------------------");
                                     System.out.println("Elija la operación que desea realizar.");
@@ -95,8 +92,9 @@ public class Cliente {
                                                 System.out.println("Introduce la ruta de la carpeta a subir o 'Salir' para salir.");
                                                 String nombreD = s.nextLine();
                                                 if (!nombreD.equalsIgnoreCase("salir")) {
+                                                    crearDirectorioRemoto(user.getDirectorioCompleto() + "\\" + obtenerNombreDesdeRuta(nombreD), dos, dis);
                                                     subirCarpeta(user.getDirectorioCompleto(), obtenerNombreDesdeRuta(nombreD), nombreD, dos, dis);
-                                                    dos.writeBytes("");
+                                                    dos.writeBytes("\r\n");
                                                     dos.flush();
                                                 }
                                                 break;
@@ -223,7 +221,7 @@ public class Cliente {
                 dos.writeBytes(f.length() + "\r\n");
                 dos.flush();
                 try (FileInputStream fis = new FileInputStream(f)) {
-                    byte[] buf = new byte[(int) (f.length() +1)];
+                    byte[] buf = new byte[(int) (f.length())];
                     fis.read(buf,0,buf.length);
                     dos.write(buf, 0, buf.length);
                     dos.flush();
@@ -249,9 +247,9 @@ public class Cliente {
             for (File item : subFichs) {
                 String pathFichNube;
                 if (pathDirPadreNube.equals("")) {
-                    pathFichNube = pathDirNube + "/" + item.getName();
+                    pathFichNube = pathDirNube + "\\" + item.getName();
                 } else {
-                    pathFichNube = pathDirNube + "/" + pathDirPadreNube + "/" + item.getName();
+                    pathFichNube = pathDirNube + "\\" + pathDirPadreNube + "\\" + item.getName();
                 }
 
                 if (item.isFile()) {
@@ -259,9 +257,9 @@ public class Cliente {
                     subirFichero(item.getAbsolutePath(), dos);
                 } else {
                     if (crearDirectorioRemoto(pathFichNube, dos, dis)) {
-                        System.out.println("Directorio creado correctamente en la nube");
+                        System.out.println("Directorio " + pathFichNube + " creado correctamente en la nube");
                     }
-                    String padre = pathDirPadreNube + "/" + item.getName();
+                    String padre = pathDirPadreNube + "\\" + item.getName();
                     if (pathDirPadreNube.equals("")) {
                         padre = item.getName();
                     }
@@ -272,7 +270,6 @@ public class Cliente {
             }
         }
 
-
     }
 
     private static String obtenerNombreDesdeRuta(String ruta){
@@ -282,13 +279,9 @@ public class Cliente {
 
     private static boolean crearDirectorioRemoto(String pathAbsoluto, DataOutputStream dos, DataInputStream dis) {
         try {
-            dos.writeBytes("<D> " + pathAbsoluto + "\r\n");
+            dos.writeBytes( pathAbsoluto + "\r\n");
             dos.flush();
-            if (dis.readLine().equals("OK")) {
-                return true;
-            } else {
-                return false;
-            }
+            return dis.readLine().equals("OK");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
