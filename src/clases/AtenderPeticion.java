@@ -3,6 +3,8 @@ package clases;
 import java.io.*;
 import java.net.Socket;
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -68,7 +70,7 @@ public class AtenderPeticion implements Runnable {
             }
             ps.print("Bienvenido " + nom + "\r\n");
             int j = 0;
-            while (j != 10) {
+            while (j != 12) {
                 Usuario usuario;
                 j = Integer.parseInt(dis.readLine());
                 switch (j) {
@@ -84,11 +86,10 @@ public class AtenderPeticion implements Runnable {
                         File dirBase = new File(dis.readLine());
                         if (dirBase.mkdir()){
                             dos.writeBytes("OK\r\n");
-                            dos.flush();
                         } else {
                             dos.writeBytes("ERROR\r\n");
-                            dos.flush();
                         }
+                        dos.flush();
                         recibirCarpeta(usuario, dirBase.getName());
                         break;
                     case 3:
@@ -96,25 +97,44 @@ public class AtenderPeticion implements Runnable {
                     case 4:
                         break;
                     case 5:
+                        usuario = (Usuario) ois.readObject();
+                        File fich = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
+
+                        break;
+                    case 6:
+                        usuario = (Usuario) ois.readObject();
+                        File dirABorrar = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
+                        if (dirABorrar.exists() && dirABorrar.isDirectory()){
+                            borrarDirectorio(dirABorrar, dos, dis);
+                        } else {
+                            dos.writeBytes("ERROR\r\n");
+                        }
+                        dos.flush();
+
+                        break;
+                    case 7:
                         String dir = dis.readLine();
                         usuario = (Usuario) ois.readObject();
                         crearDirectorio(dir, usuario);
                         break;
-                    case 6:
+                    case 8:
                         usuario = (Usuario) ois.readObject();
                         mostrarDirec(usuario);
                         break;
-                    case 7:
+                    case 9:
                         String dirC = dis.readLine();
                         usuario = (Usuario) ois.readObject();
                         cambiarDirec(dirC, usuario, oos);
-
                         break;
-                    case 8:
+                    case 10:
                         usuario = (Usuario) ois.readObject();
                         usuario.subirDirectorioPadre();
                         oos.writeObject(usuario);
                         oos.flush();
+                        break;
+                    case 11:
+                        break;
+                    case 12:
                         break;
                     default:
                         break;
@@ -188,7 +208,7 @@ public class AtenderPeticion implements Runnable {
             long tam = Long.parseLong(dis.readLine());
             try (FileOutputStream fos = new FileOutputStream(fichNuevo)) {
                 byte[] buf = new byte[(int) (tam)];
-                dis.read(buf, 0, buf.length);
+                dis.readFully(buf, 0, buf.length);
                 fos.write(buf, 0, buf.length);
                 fos.flush();
             } catch (IOException ex) {
@@ -321,5 +341,59 @@ public class AtenderPeticion implements Runnable {
         }
     }
 
+    private static void borrarFichero(File fich){
+        try {
+            if (fich.exists()){
+                if (fich.delete()){
+                    dos.writeBytes("OK\r\n");
+                } else {
+                    dos.writeBytes("ERROR\r\n");
+                }
+            } else {
+                dos.writeBytes("ERROR\r\n");
+
+            }
+            dos.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private static void borrarDirectorioNoVacio(File dir){
+        try {
+            File[] subFicheros = dir.listFiles();
+            if (subFicheros != null && subFicheros.length > 0){
+                Arrays.sort(subFicheros, new Comparator<File>() {   //Para ordenar los sub ficheros, de forma que
+                    public int compare(File o1, File o2) {          //primero se eliminarán los directorios más profundos
+                        if (o1.isDirectory() && !o2.isDirectory()){ //y después los elementos recursivamente.
+                            return -1;
+                        } else if (!o1.isDirectory() && o2.isDirectory()){
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                });
+                for (File item: subFicheros){
+                    if (item.isDirectory()){
+                        borrarDirectorioNoVacio(item);
+                    } else {
+
+                        borrarFichero(item);
+                    }
+                }
+                borrarDirectorioVacio();
+
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
 }
+
+
 

@@ -65,12 +65,14 @@ public class Cliente {
                                     System.out.println("2. Subir una carpeta");
                                     System.out.println("3. Descargar un fichero");
                                     System.out.println("4. Descargar una carpeta");
-                                    System.out.println("5. Crear una nueva carpeta");
-                                    System.out.println("6. Mostrar directorio actual");
-                                    System.out.println("7. Cambiar de directorio");
-                                    System.out.println("8. Ir al directorio padre");
-                                    System.out.println("9. Compartir un fichero con otro usuario");
-                                    System.out.println("10. Salir");
+                                    System.out.println("5. Borrar un fichero de la nube");
+                                    System.out.println("6. Borrar una carpeta de la nube");
+                                    System.out.println("7. Crear una nueva carpeta");
+                                    System.out.println("8. Mostrar directorio actual");
+                                    System.out.println("9. Cambiar de directorio");
+                                    System.out.println("10. Ir al directorio padre");
+                                    System.out.println("11. Compartir un fichero con otro usuario");
+                                    System.out.println("12. Salir");
                                     j = Integer.parseInt(s.nextLine());
 
                                     if (j > 0 && j < 11) {
@@ -99,19 +101,43 @@ public class Cliente {
                                                 }
                                                 break;
                                             case 3:
+
                                                 break;
                                             case 4:
                                                 break;
                                             case 5:
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                System.out.println("Introduce el nombre del fichero a borrar (existente en el directorio actual) o 'Salir' para salir.");
+                                                String nom = s.nextLine();
+                                                if (!nom.equalsIgnoreCase("salir")){
+                                                    if (borrarFichero(nom, dos, dis)){
+                                                        System.out.println("Fichero borrado correctamente.");
+                                                    } else {
+                                                        System.out.println("Error al eliminar el fichero.");
+                                                    }
+                                                }
+                                                break;
+                                            case 6:
+                                                oos.writeObject(user);
+                                                oos.flush();
+                                                System.out.println("Introduce la ruta de la carpeta a eliminar (existente en el directorio actual) o 'Salir' para salir.");
+                                                String nomD = s.nextLine();
+                                                if (!nomD.equalsIgnoreCase("salir")){
+                                                    borrarCarpeta(nomD, dos);
+                                                }
+                                                break;
+                                            case 7:
                                                 System.out.println("Introduce el nombre de la carpeta nueva: ");
                                                 input = s.nextLine();
-                                                dos.writeBytes(input);
+                                                dos.writeBytes(input + "\r\n");
                                                 dos.flush();
                                                 oos.writeObject(user);
                                                 oos.flush();
                                                 System.out.println(dis.readLine());
+
                                                 break;
-                                            case 6:
+                                            case 8:
                                                 oos.writeObject(user);
                                                 oos.flush();
                                                 String linea = dis.readLine();
@@ -120,8 +146,9 @@ public class Cliente {
                                                     linea = dis.readLine();
                                                 }
 
+
                                                 break;
-                                            case 7:
+                                            case 9:
                                                 System.out.println("Introduce el nombre del directorio: ");
                                                 input = s.nextLine();
                                                 dos.writeBytes(input + "\r\n");
@@ -130,12 +157,13 @@ public class Cliente {
                                                 oos.flush();
                                                 System.out.println(dis.readLine());
                                                 user = (Usuario) ois.readObject();
+
+
                                                 break;
-                                            case 8:
+                                            case 10:
                                                 oos.writeObject(user);
                                                 oos.flush();
                                                 user = (Usuario) ois.readObject();
-
                                                 break;
                                         }
 
@@ -145,7 +173,7 @@ public class Cliente {
                                 } catch (ClassNotFoundException e) {
                                     throw new RuntimeException(e);
                                 }
-                            } while (j != 10);
+                            } while (j != 12);
                         }
 
                     }
@@ -220,9 +248,10 @@ public class Cliente {
                 dos.flush();
                 dos.writeBytes(f.length() + "\r\n");
                 dos.flush();
-                try (FileInputStream fis = new FileInputStream(f)) {
+                try (FileInputStream fs = new FileInputStream(f);
+                     DataInputStream fis = new DataInputStream(fs)) {
                     byte[] buf = new byte[(int) (f.length())];
-                    fis.read(buf,0,buf.length);
+                    fis.readFully(buf,0,buf.length);
                     dos.write(buf, 0, buf.length);
                     dos.flush();
                 } catch (IOException ex) {
@@ -257,7 +286,8 @@ public class Cliente {
                     subirFichero(item.getAbsolutePath(), dos);
                 } else {
                     if (crearDirectorioRemoto(pathFichNube, dos, dis)) {
-                        System.out.println("Directorio " + pathFichNube + " creado correctamente en la nube");
+                        String direc = pathFichNube.replace("src\\nube\\", "");
+                        System.out.println("Directorio " + direc + " creado correctamente en la nube");
                     }
                     String padre = pathDirPadreNube + "\\" + item.getName();
                     if (pathDirPadreNube.equals("")) {
@@ -282,6 +312,26 @@ public class Cliente {
             dos.writeBytes( pathAbsoluto + "\r\n");
             dos.flush();
             return dis.readLine().equals("OK");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean borrarFichero(String nombre, DataOutputStream dos, DataInputStream dis){
+        try {
+            dos.writeBytes(nombre + "\r\n");
+            dos.flush();
+            return dis.readLine().equals("OK");
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void borrarCarpeta(String nombre, DataOutputStream dos){
+        try {
+            dos.writeBytes(nombre + "\r\n");
+            dos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
