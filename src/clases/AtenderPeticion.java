@@ -99,18 +99,24 @@ public class AtenderPeticion implements Runnable {
                     case 5:
                         usuario = (Usuario) ois.readObject();
                         File fich = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
-
+                        if (fich.isDirectory()){
+                            dos.writeBytes("DIRECTORIO\r\n");
+                            dos.flush();
+                        } else {
+                            borrarFichero(fich);
+                        }
                         break;
                     case 6:
                         usuario = (Usuario) ois.readObject();
                         File dirABorrar = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
                         if (dirABorrar.exists() && dirABorrar.isDirectory()){
-                            borrarDirectorio(dirABorrar, dos, dis);
+                            borrarDirectorioNoVacio(dirABorrar.getAbsolutePath(), "");
                         } else {
                             dos.writeBytes("ERROR\r\n");
                         }
                         dos.flush();
-
+                        dos.writeBytes("\r\n");
+                        dos.flush();
                         break;
                     case 7:
                         String dir = dis.readLine();
@@ -247,7 +253,7 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private String nombreDesdeRuta(String ruta) {
+    private static String nombreDesdeRuta(String ruta) {
         String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
         return trozos[trozos.length - 1];
     }
@@ -360,11 +366,16 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private static void borrarDirectorioNoVacio(File dir){
+    private static void borrarDirectorioNoVacio(String dirPadre, String dirActual){
         try {
-            File[] subFicheros = dir.listFiles();
-            if (subFicheros != null && subFicheros.length > 0){
-                Arrays.sort(subFicheros, new Comparator<File>() {   //Para ordenar los sub ficheros, de forma que
+            String dir = dirPadre;
+            if (!dirActual.equals("")) {
+                dir += "\\" + dirActual;
+            }
+            File fDir = new File(dir);
+            File[] subFicheros = fDir.listFiles();
+            if (subFicheros != null && subFicheros.length > 0) {
+                /*Arrays.sort(subFicheros, new Comparator<File>() {   //Para ordenar los sub ficheros, de forma que
                     public int compare(File o1, File o2) {          //primero se eliminarán los directorios más profundos
                         if (o1.isDirectory() && !o2.isDirectory()){ //y después los elementos recursivamente.
                             return -1;
@@ -374,24 +385,29 @@ public class AtenderPeticion implements Runnable {
                             return 0;
                         }
                     }
-                });
-                for (File item: subFicheros){
-                    if (item.isDirectory()){
-                        borrarDirectorioNoVacio(item);
+                });*/
+                for (File item : subFicheros) {
+                    String nombreFichActual = item.getName();
+                    if (item.isDirectory()) {
+                        borrarDirectorioNoVacio(dir, nombreFichActual);
                     } else {
-
+                        dos.writeBytes("Borrando fichero " + item.getName().replace("src\\nube\\", "") + "\r\n");
+                        dos.flush();
                         borrarFichero(item);
                     }
                 }
-                borrarDirectorioVacio();
-
             }
-        } catch (Exception e) {
+            if (dirActual.equals("")){
+                dos.writeBytes("Borrando directorio raíz " + nombreDesdeRuta(dirPadre) + "\r\n");
+            } else {
+                dos.writeBytes("Borrando directorio " + dirActual + "\r\n");
+            }
+            dos.flush();
+            borrarFichero(new File(dir));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 
 }
 

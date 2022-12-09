@@ -55,6 +55,7 @@ public class Cliente {
                         if (!error) {
                             int j = 0;
                             String input;
+                            String res;
                             do {
                                 try {
                                     System.out.println("--------------------------------------------------------------");
@@ -111,11 +112,7 @@ public class Cliente {
                                                 System.out.println("Introduce el nombre del fichero a borrar (existente en el directorio actual) o 'Salir' para salir.");
                                                 String nom = s.nextLine();
                                                 if (!nom.equalsIgnoreCase("salir")){
-                                                    if (borrarFichero(nom, dos, dis)){
-                                                        System.out.println("Fichero borrado correctamente.");
-                                                    } else {
-                                                        System.out.println("Error al eliminar el fichero.");
-                                                    }
+                                                    borrarFichero(nom, dos, dis);
                                                 }
                                                 break;
                                             case 6:
@@ -125,6 +122,13 @@ public class Cliente {
                                                 String nomD = s.nextLine();
                                                 if (!nomD.equalsIgnoreCase("salir")){
                                                     borrarCarpeta(nomD, dos);
+                                                }
+                                                res = dis.readLine();
+                                                while (!res.equals("")){
+                                                    if (!res.equals("OK")){
+                                                        System.out.println(res);
+                                                    }
+                                                    res = dis.readLine();
                                                 }
                                                 break;
                                             case 7:
@@ -140,13 +144,11 @@ public class Cliente {
                                             case 8:
                                                 oos.writeObject(user);
                                                 oos.flush();
-                                                String linea = dis.readLine();
-                                                while (!linea.equals("")) {
-                                                    System.out.println(linea);
-                                                    linea = dis.readLine();
+                                                res = dis.readLine();
+                                                while (!res.equals("")) {
+                                                    System.out.println(res);
+                                                    res = dis.readLine();
                                                 }
-
-
                                                 break;
                                             case 9:
                                                 System.out.println("Introduce el nombre del directorio: ");
@@ -317,12 +319,16 @@ public class Cliente {
         }
     }
 
-    public static boolean borrarFichero(String nombre, DataOutputStream dos, DataInputStream dis){
+    public static void borrarFichero(String nombre, DataOutputStream dos, DataInputStream dis){
         try {
             dos.writeBytes(nombre + "\r\n");
             dos.flush();
-            return dis.readLine().equals("OK");
-
+            String respuesta = dis.readLine();
+            switch (respuesta) {
+                case "OK" -> System.out.println("Fichero borrado correctamente.");
+                case "ERROR" -> System.out.println("Error al intentar borrar fichero introducido.");
+                case "DIRECTORIO" -> System.out.println("Error: La ruta introducida se corresponde con un directorio.");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
