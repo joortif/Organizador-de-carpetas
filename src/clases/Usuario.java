@@ -14,6 +14,8 @@ public class Usuario implements Serializable {
         this.directorio = "src\\nube\\" + n;
     }
 
+
+
     public String getDirectorioCompleto(){
         return this.directorio;
     }

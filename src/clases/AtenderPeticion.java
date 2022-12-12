@@ -72,11 +72,12 @@ public class AtenderPeticion implements Runnable {
             int j = 0;
             while (j != 12) {
                 Usuario usuario;
+                String nombre;
                 j = Integer.parseInt(dis.readLine());
                 switch (j) {
                     case 1:
                         usuario = (Usuario) ois.readObject();
-                        String nombre = dis.readLine();
+                        nombre = dis.readLine();
                         if (!nombre.equals("Salir")){
                             recibirFichero(nombre, "", usuario);
                         }
@@ -93,6 +94,7 @@ public class AtenderPeticion implements Runnable {
                         recibirCarpeta(usuario, dirBase.getName());
                         break;
                     case 3:
+                        enviarFichero(dis.readLine());
                         break;
                     case 4:
                         break;
@@ -375,17 +377,6 @@ public class AtenderPeticion implements Runnable {
             File fDir = new File(dir);
             File[] subFicheros = fDir.listFiles();
             if (subFicheros != null && subFicheros.length > 0) {
-                /*Arrays.sort(subFicheros, new Comparator<File>() {   //Para ordenar los sub ficheros, de forma que
-                    public int compare(File o1, File o2) {          //primero se eliminarán los directorios más profundos
-                        if (o1.isDirectory() && !o2.isDirectory()){ //y después los elementos recursivamente.
-                            return -1;
-                        } else if (!o1.isDirectory() && o2.isDirectory()){
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                    }
-                });*/
                 for (File item : subFicheros) {
                     String nombreFichActual = item.getName();
                     if (item.isDirectory()) {
@@ -404,6 +395,37 @@ public class AtenderPeticion implements Runnable {
             }
             dos.flush();
             borrarFichero(new File(dir));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void enviarFichero(String rutaEnNube){
+        try {
+            File fichEnNube = new File("src\\nube\\" + rutaEnNube);
+            if (fichEnNube.exists() && fichEnNube.isFile()){
+                String msg = dis.readLine();
+                if (msg.equalsIgnoreCase("correcto")){
+                    dos.writeBytes(fichEnNube.length() + "\r\n");
+                    dos.flush();
+
+                    try (FileInputStream fs = new FileInputStream(fichEnNube);
+                         DataInputStream fis = new DataInputStream(fs)){
+
+                        byte[] buf = new byte[(int) fichEnNube.length()];
+                        fis.readFully(buf, 0, buf.length);
+                        dos.write(buf,0,buf.length);
+                        dos.flush();
+
+                    }
+                } else {
+                    dos.writeBytes("ERROR\r\n");
+                    dos.flush();
+                }
+            } else {
+                dos.writeBytes("ERROR\r\n");
+                dos.flush();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
