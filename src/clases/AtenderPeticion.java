@@ -3,8 +3,6 @@ package clases;
 import java.io.*;
 import java.net.Socket;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -97,6 +95,15 @@ public class AtenderPeticion implements Runnable {
                         enviarFichero(dis.readLine());
                         break;
                     case 4:
+                        boolean existe = comprobarDirectorio();
+                        dos.writeBoolean(existe);
+                        if (dis.readLine().equalsIgnoreCase("ok")){
+                            String carpetaEnNube = dis.readLine();
+                            String carpetaDestinoLocal = dis.readLine();
+                            enviarCarpeta(carpetaDestinoLocal, nombreDesdeRuta(carpetaEnNube) , "src\\nube\\" + carpetaEnNube);
+                        }
+                        dos.writeBytes("\r\n");
+                        dos.flush();
                         break;
                     case 5:
                         usuario = (Usuario) ois.readObject();
@@ -163,6 +170,8 @@ public class AtenderPeticion implements Runnable {
 
 
     }
+
+
 
     private ConcurrentHashMap<String, String> cargarUsuarios(File fich) {
         ConcurrentHashMap<String, String> listaU = new ConcurrentHashMap<>();
@@ -267,7 +276,7 @@ public class AtenderPeticion implements Runnable {
         return archivoYExt.length <= 1;
     }
 
-    private String convertirARutaNube(String ruta, String dir){
+    private static String convertirARutaNube(String ruta, String dir){
         int i = ruta.indexOf(dir);
         return ruta.substring(i);
     }
@@ -431,7 +440,76 @@ public class AtenderPeticion implements Runnable {
         }
     }
 
+    private static void enviarFicheroDeCarpeta(String ruta, String dirNube){
+        try {
+            File fichero = new File(ruta);
+            String rutaNube = convertirARutaNube(ruta, dirNube);
+            dos.writeBytes(rutaNube + "\r\n");
+            dos.flush();
+            dos.writeBytes(fichero.length() + "\r\n");
+            dos.flush();
+
+            try (FileInputStream fs = new FileInputStream(fichero);
+                 DataInputStream fis = new DataInputStream(fs)){
+
+                byte[] buf = new byte[(int) fichero.length()];
+                fis.readFully(buf, 0, buf.length);
+                dos.write(buf,0,buf.length);
+                dos.flush();
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void enviarCarpeta(String dirDestinoLocal, String directorioPadreDescarga , String directorioDescarga) {
+        try {
+            File dirLocal = new File(directorioDescarga);
+            File[] subFichs = dirLocal.listFiles();
+            if (subFichs != null && subFichs.length > 0) {
+                for (File item : subFichs) {
+                    String pathFichNube;
+                    if (directorioPadreDescarga.equals("")) {
+                        pathFichNube = dirDestinoLocal + "\\" + item.getName();
+                    } else {
+                        pathFichNube = dirDestinoLocal + "\\" + directorioPadreDescarga + "\\" + item.getName();
+                    }
+
+                    if (item.isFile()) {
+                        enviarFicheroDeCarpeta(item.getAbsolutePath(), nombreDesdeRuta(directorioDescarga));
+                    } else {
+                        dos.writeBytes(pathFichNube +"\r\n");
+                        dos.flush();
+                        String padre = directorioPadreDescarga + "\\" + item.getName();
+                        if (directorioPadreDescarga.equals("")) {
+                            padre = item.getName();
+                        }
+                        String directorio = item.getAbsolutePath();
+                        enviarCarpeta(dirDestinoLocal, padre, directorio);
+
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private static boolean comprobarDirectorio(){
+        try {
+            File directorio = new File("src\\nube\\" + dis.readLine());
+            return (directorio.exists() && directorio.isDirectory());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
+
+
+
 
 
 
