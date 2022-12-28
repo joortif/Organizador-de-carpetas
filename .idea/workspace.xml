@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Descargar ficheros de la nube hecho, hacer descargar carpetas">
+    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Descargar carpetas hecho, retocar arreglar casos raros">
+      <change afterPath="$PROJECT_DIR$/src/clases/Mensaje.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/clases/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Usuario.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +26,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectId" id="2HwfVI0QQNIu0qdCITU0mipQh2x" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -38,6 +43,11 @@
     &quot;last_opened_file_path&quot;: &quot;C:/Users/HUAWEI/Downloads/Churrusqui-main/Churrusqui-main&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="clases" />
+    </key>
+  </component>
   <component name="RunManager" selected="Application.Cliente">
     <configuration name="Cliente" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="clases.Cliente" />
@@ -183,7 +193,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670866873397</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Descargar carpetas hecho, retocar arreglar casos raros">
+      <created>1671391733645</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1671391733645</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -211,7 +228,8 @@
     <MESSAGE value="Acabar borrar carpeta" />
     <MESSAGE value="Borrar carpeta/fichero hechos. Hacer descargas y compartir ficheros" />
     <MESSAGE value="Descargar ficheros de la nube hecho, hacer descargar carpetas" />
-    <option name="LAST_COMMIT_MESSAGE" value="Descargar ficheros de la nube hecho, hacer descargar carpetas" />
+    <MESSAGE value="Descargar carpetas hecho, retocar arreglar casos raros" />
+    <option name="LAST_COMMIT_MESSAGE" value="Descargar carpetas hecho, retocar arreglar casos raros" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -222,18 +240,24 @@
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>481</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
-          <line>419</line>
-          <properties class="clases.Cliente" method="descargarCarpeta">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="15" />
+          <line>483</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
+          <line>230</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
+          <line>158</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
+          <line>520</line>
+          <option name="timeStamp" value="22" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -6,6 +6,8 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class AtenderPeticion implements Runnable {
 
@@ -150,6 +152,24 @@ public class AtenderPeticion implements Runnable {
                     case 11:
                         break;
                     case 12:
+                        break;
+                    case 13:
+                        break;
+                    case 14:
+                        existe = comprobarDirectorio();
+                        if (existe){
+                            dos.writeBoolean(existe);
+                            nombre = dis.readLine();
+                            String nomF = "src\\nube\\" + nombre;
+                            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(nomF + ".zip"));
+
+                            File fichAComprimir = new File(nomF);
+                            comprimirZip(fichAComprimir, fichAComprimir.getName(), zos);
+                            zos.close();
+                            enviarFichero(nombre + ".zip"); //Se envia el .zip
+                            File fichZip = new File(nomF + ".zip");
+                            fichZip.delete(); //Se borra el .zip de la nube despues de enviarlo
+                        }
                         break;
                     default:
                         break;
@@ -490,6 +510,41 @@ public class AtenderPeticion implements Runnable {
 
                     }
                 }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private static void comprimirZip(File ficheroAZip, String nombreF, ZipOutputStream salidaZip){
+        try {
+            if (ficheroAZip.isDirectory()){
+                if (nombreF.endsWith("\\")){
+                    salidaZip.putNextEntry(new ZipEntry(nombreF));
+                    salidaZip.closeEntry();
+                } else {
+                    salidaZip.putNextEntry(new ZipEntry(nombreF + "\\"));
+                    salidaZip.closeEntry();
+                }
+                File[] hijos = ficheroAZip.listFiles();
+                if (hijos != null){
+                    for (File f: hijos){
+                        comprimirZip(f,nombreF + "\\" + f.getName(), salidaZip);
+                    }
+                }
+                return;
+            }
+            try (FileInputStream fis = new FileInputStream(ficheroAZip)){   //Se comprimen los subficheros y subdirectorios
+                ZipEntry entradaZip = new ZipEntry(nombreF);
+                salidaZip.putNextEntry(entradaZip);
+                byte[] buf = new byte[1024*1024];
+                int leidos;
+                while ((leidos = fis.read(buf)) != -1){
+                    salidaZip.write(buf, 0, leidos);
+                }
+                salidaZip.flush();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

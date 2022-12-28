@@ -74,11 +74,13 @@ public class Cliente {
                                     System.out.println("9. Cambiar de directorio");
                                     System.out.println("10. Ir al directorio padre");
                                     System.out.println("11. Compartir un fichero con otro usuario");
-                                    System.out.println("12. Salir");
-                                    System.out.println("Posible: Abrir ficheros(ejecutar aplicacion por defecto); Comprimir en .zip/.rar");
+                                    System.out.println("12. Mostrar correo");
+                                    System.out.println("13. Vaciar correo");
+                                    System.out.println("14. Comprimir y descargar una carpeta");
+                                    System.out.println("15. Salir");
                                     j = Integer.parseInt(s.nextLine());
 
-                                    if (j > 0 && j < 13) {
+                                    if (j > 0 && j < 16) {
                                         dos.writeBytes(j + "\r\n");
                                         dos.flush();
                                         switch (j) {
@@ -209,7 +211,35 @@ public class Cliente {
                                                 user = (Usuario) ois.readObject();
                                                 break;
                                             case 11:
-                                                Desktop.getDesktop().open(new File("C:\\Users\\HUAWEI\\Desktop\\Universidad\\Sistemas\\ProyectoSD\\src\\nube\\usu1\\dir2\\daad.txt"));
+
+                                                break;
+                                            case 12:
+                                                user.mostrarCorreo();
+                                                break;
+                                            case 13:
+                                                user.vaciarCorreo();
+                                                break;
+                                            case 14:
+                                                System.out.println("Introduce la ruta (desde el directorio raíz) de la carpeta a descargar o 'Salir' para salir.");
+                                                input = s.nextLine();
+                                                if (!input.equalsIgnoreCase("salir")) {
+                                                    System.out.println("Introduce la ruta local en la que se desea guardar la carpeta");
+                                                    String rutaLocal = s.nextLine();
+                                                    File fLocal = new File(rutaLocal);
+                                                    if (existeEnNube(input, dos, dis)) {
+                                                        if (fLocal.exists() && fLocal.isDirectory()){
+                                                            descargarZip(input, rutaLocal, dis, dos);
+                                                        } else {
+                                                            System.out.println("La ruta local introducida no es valida");
+                                                            dos.writeBytes("ERROR\r\n");
+                                                            dos.flush();
+                                                        }
+                                                    } else {
+                                                        System.out.println("El directorio introducido no existe en la nube");
+                                                        dos.writeBytes("ERROR\r\n");
+                                                        dos.flush();
+                                                    }
+                                                }
                                                 break;
                                         }
 
@@ -219,7 +249,7 @@ public class Cliente {
                                 } catch (ClassNotFoundException e) {
                                     throw new RuntimeException(e);
                                 }
-                            } while (j != 12);
+                            } while (j != 15);
                         }
 
                     }
@@ -445,6 +475,17 @@ public class Cliente {
                 fos.write(buf, 0, buf.length);
                 fos.flush();
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void descargarZip(String entrada, String salida, DataInputStream dis, DataOutputStream dos){
+        try {
+            dos.writeBytes(entrada + "\r\n");
+            dos.flush();
+            descargarFichero(entrada + ".zip", salida, dos, dis);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
