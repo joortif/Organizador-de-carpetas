@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Descargar carpetas hecho, retocar arreglar casos raros">
-      <change afterPath="$PROJECT_DIR$/src/clases/Mensaje.java" afterDir="false" />
+    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Comprimir a zip hecho">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
@@ -200,7 +199,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671391733645</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Comprimir a zip hecho">
+      <created>1672243300969</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1672243300969</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -229,7 +235,8 @@
     <MESSAGE value="Borrar carpeta/fichero hechos. Hacer descargas y compartir ficheros" />
     <MESSAGE value="Descargar ficheros de la nube hecho, hacer descargar carpetas" />
     <MESSAGE value="Descargar carpetas hecho, retocar arreglar casos raros" />
-    <option name="LAST_COMMIT_MESSAGE" value="Descargar carpetas hecho, retocar arreglar casos raros" />
+    <MESSAGE value="Comprimir a zip hecho" />
+    <option name="LAST_COMMIT_MESSAGE" value="Comprimir a zip hecho" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -240,23 +247,8 @@
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
-          <line>483</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
-          <line>230</line>
-          <option name="timeStamp" value="20" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>158</line>
-          <option name="timeStamp" value="21" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>520</line>
+          <line>552</line>
           <option name="timeStamp" value="22" />
         </line-breakpoint>
       </breakpoints>

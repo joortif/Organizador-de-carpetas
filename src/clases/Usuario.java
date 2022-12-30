@@ -42,9 +42,16 @@ public class Usuario implements Serializable {
     }
 
     public void mostrarCorreo(){
-        for (Mensaje m: this.correo) {
-            System.out.println(m.toString());
+        if (this.correo.isEmpty()){
+            System.out.println("Correo vacío");
+        } else {
+            for (Mensaje m: this.correo) {
+                System.out.println("--------------------------------------------------------------");
+                System.out.println(m.toString());
+                System.out.println("--------------------------------------------------------------");
+            }
         }
+
     }
 
     public void vaciarCorreo(){

@@ -83,52 +83,70 @@ public class Cliente {
                                     if (j > 0 && j < 16) {
                                         dos.writeBytes(j + "\r\n");
                                         dos.flush();
+                                        oos.writeObject(user);
+                                        oos.flush();
                                         switch (j) {
                                             case 1:
-                                                oos.writeObject(user);
-                                                oos.flush();
-                                                System.out.println("Introduce la ruta del fichero a subir o 'Salir' para salir.");
+
+                                                System.out.println("Introduce la ruta (desde el directorio actual) del fichero a subir ");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")) {
-                                                    subirFichero(input, dos);
-                                                }
+                                                subirFichero(input, dos);
                                                 break;
                                             case 2:
-                                                oos.writeObject(user);
-                                                oos.flush();
-                                                System.out.println("Introduce la ruta de la carpeta a subir o 'Salir' para salir.");
+
+                                                System.out.println("Introduce la ruta (desde el directorio actual) de la carpeta a subir");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")) {
-                                                    crearDirectorioRemoto(user.getDirectorioCompleto() + "\\" + obtenerNombreDesdeRuta(input), dos, dis);
+                                                File dir = new File(input);
+                                                if (dir.exists() && dir.isDirectory()){
+                                                    dos.writeBytes(input+"\r\n");
+                                                    dos.flush();
                                                     subirCarpeta(user.getDirectorioCompleto(), obtenerNombreDesdeRuta(input), input, dos, dis);
                                                     dos.writeBytes("\r\n");
+                                                    dos.flush();
+                                                } else {
+                                                    System.err.println("La ruta introducida no es válida.");
+                                                    dos.writeBytes("error\r\n");
                                                     dos.flush();
                                                 }
                                                 break;
                                             case 3:
-                                                System.out.println("Introduce la ruta (desde el directorio raíz) del fichero a descargar o 'Salir' para salir.");
+                                                System.out.println("Introduce la ruta en nube (desde el directorio actual) del fichero a descargar");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")){
+                                                dos.writeBytes(input + "\r\n");
+                                                dos.flush();
+                                                if (dis.readBoolean()){
                                                     System.out.println("Introduce la ruta local en la que se desea guardar el fichero");
                                                     String rutaLocal = s.nextLine();
-                                                    dos.writeBytes(input + "\r\n");
-                                                    dos.flush();
-                                                    descargarFichero(input, rutaLocal, dos, dis);
+                                                    descargarFichero(input, new File(rutaLocal), dos, dis);
+                                                } else {
+                                                    System.err.println("La ruta en la nube no es válida");
                                                 }
                                                 break;
                                             case 4:
-                                                System.out.println("Introduce la ruta (desde el directorio raíz) de la carpeta a descargar o 'Salir' para salir.");
+                                                String reempl = "s";
+                                                System.out.println("Introduce la ruta (desde el directorio actual) de la carpeta a descargar");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")){
+                                                dos.writeBytes(input + "\r\n");
+                                                dos.flush();
+                                                if (dis.readBoolean()){
                                                     System.out.println("Introduce la ruta local en la que se desea guardar la carpeta");
                                                     String rutaLocal = s.nextLine();
                                                     File dirDestino = new File(rutaLocal);
-                                                    if (existeEnNube(input, dos, dis)) {
-                                                        if (dirDestino.exists() && dirDestino.isDirectory()) {
-                                                            File nuevoDir = new File(rutaLocal + "\\" + obtenerNombreDesdeRuta(input));
-                                                            if (!nuevoDir.exists()){
-                                                                nuevoDir.mkdir();
+                                                    if (dirDestino.exists() && dirDestino.isDirectory()) {
+                                                        File nuevoDir = new File(rutaLocal + "\\" + obtenerNombreDesdeRuta(input));
+                                                        if (!nuevoDir.exists()){
+                                                            nuevoDir.mkdir();
+                                                        } else {
+                                                            System.out.println("Ya existe un directorio con ese nombre, ¿Desea reemplazarlo? (S/N)");
+                                                            reempl = s.nextLine();
+                                                            while (!reempl.equalsIgnoreCase("s") && !reempl.equalsIgnoreCase("n")) {
+                                                                System.out.println("Ya existe un directorio con ese nombre, ¿Desea reemplazarlo? (S/N)");
+                                                                reempl = s.nextLine();
                                                             }
+                                                        }
+                                                        dos.writeBytes(reempl + "\r\n");
+                                                        dos.flush();
+                                                        if (reempl.equalsIgnoreCase("s")){
                                                             dos.writeBytes("OK\r\n");
                                                             dos.flush();
                                                             dos.writeBytes(input + "\r\n");
@@ -137,56 +155,47 @@ public class Cliente {
                                                             dos.flush();
                                                             descargarCarpeta(nuevoDir.getAbsolutePath(), dis);
                                                             System.out.println("Carpeta descargada correctamente");
-                                                        } else {
-                                                            System.out.println("La ruta local introducida no es válida");
-                                                            dos.writeBytes("ERROR\r\n");
-                                                            dos.flush();
                                                         }
                                                     } else {
-                                                        System.out.println("El directorio introducido no existe en la nube");
+                                                        System.err.println("La ruta local introducida no es válida");
                                                         dos.writeBytes("ERROR\r\n");
                                                         dos.flush();
                                                     }
+                                                } else {
+                                                    System.err.println("La ruta de la carpeta en la nube no es válida o se corresponde con un fichero");
                                                 }
                                                 break;
                                             case 5:
-                                                oos.writeObject(user);
-                                                oos.flush();
-                                                System.out.println("Introduce el nombre del fichero a borrar (existente en el directorio actual) o 'Salir' para salir.");
+                                                System.out.println("Introduce el nombre del fichero a borrar (desde el directorio actual)");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")){
-                                                    borrarFichero(input, dos, dis);
-                                                }
+                                                borrarFichero(input, dos, dis);
                                                 break;
                                             case 6:
-                                                oos.writeObject(user);
-                                                oos.flush();
-                                                System.out.println("Introduce la ruta de la carpeta a eliminar (existente en el directorio actual) o 'Salir' para salir.");
+                                                System.out.println("Introduce la ruta de la carpeta a eliminar (desde el directorio actual)");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")){
-                                                    borrarCarpeta(input, dos);
-                                                }
+                                                borrarCarpeta(input, dos);
                                                 res = dis.readLine();
                                                 while (!res.equals("")){
                                                     if (!res.equals("OK")){
-                                                        System.out.println(res);
+                                                        if (res.equals("ERROR")){
+                                                            System.err.println("La carpeta introducida no existe en la nube");
+                                                            break;
+                                                        } else {
+                                                            System.out.println(res);
+                                                        }
                                                     }
                                                     res = dis.readLine();
                                                 }
                                                 break;
                                             case 7:
-                                                System.out.println("Introduce el nombre de la carpeta nueva: ");
+                                                System.out.println("Introduce el nombre de la carpeta nueva (se crearán las carpetas necesarias en caso de no existir) ");
                                                 input = s.nextLine();
                                                 dos.writeBytes(input + "\r\n");
                                                 dos.flush();
-                                                oos.writeObject(user);
-                                                oos.flush();
                                                 System.out.println(dis.readLine());
 
                                                 break;
                                             case 8:
-                                                oos.writeObject(user);
-                                                oos.flush();
                                                 res = dis.readLine();
                                                 while (!res.equals("")) {
                                                     System.out.println(res);
@@ -198,20 +207,12 @@ public class Cliente {
                                                 input = s.nextLine();
                                                 dos.writeBytes(input + "\r\n");
                                                 dos.flush();
-                                                oos.writeObject(user);
-                                                oos.flush();
                                                 System.out.println(dis.readLine());
-                                                user = (Usuario) ois.readObject();
-
-
                                                 break;
                                             case 10:
-                                                oos.writeObject(user);
-                                                oos.flush();
-                                                user = (Usuario) ois.readObject();
+
                                                 break;
                                             case 11:
-
                                                 break;
                                             case 12:
                                                 user.mostrarCorreo();
@@ -220,29 +221,27 @@ public class Cliente {
                                                 user.vaciarCorreo();
                                                 break;
                                             case 14:
-                                                System.out.println("Introduce la ruta (desde el directorio raíz) de la carpeta a descargar o 'Salir' para salir.");
+                                                System.out.println("Introduce la ruta (desde el directorio raíz) de la carpeta a descargar");
                                                 input = s.nextLine();
-                                                if (!input.equalsIgnoreCase("salir")) {
+                                                dos.writeBytes(input + "\r\n");
+                                                dos.flush();
+                                                if (dis.readBoolean()){
                                                     System.out.println("Introduce la ruta local en la que se desea guardar la carpeta");
                                                     String rutaLocal = s.nextLine();
                                                     File fLocal = new File(rutaLocal);
-                                                    if (existeEnNube(input, dos, dis)) {
-                                                        if (fLocal.exists() && fLocal.isDirectory()){
-                                                            descargarZip(input, rutaLocal, dis, dos);
-                                                        } else {
-                                                            System.out.println("La ruta local introducida no es valida");
-                                                            dos.writeBytes("ERROR\r\n");
-                                                            dos.flush();
-                                                        }
+                                                    if (fLocal.exists() && fLocal.isDirectory()){
+                                                        descargarZip(input, rutaLocal, dis, dos);
                                                     } else {
-                                                        System.out.println("El directorio introducido no existe en la nube");
+                                                        System.err.println("La ruta local introducida no es valida");
                                                         dos.writeBytes("ERROR\r\n");
                                                         dos.flush();
                                                     }
+                                                } else {
+                                                    System.err.println("La ruta introducida no existe en la nube o no es válida.");
                                                 }
                                                 break;
                                         }
-
+                                        user = (Usuario) ois.readObject();
                                     }
                                 } catch (NumberFormatException nfe) {
                                     System.out.println("Introduce un numero!");
@@ -319,7 +318,7 @@ public class Cliente {
     private static void subirFichero(String nombreF, DataOutputStream dos) {
         try {
             File f = new File(nombreF);
-            if (f.exists()) {
+            if (f.exists() && f.isFile()) {
                 dos.writeBytes(nombreF + "\r\n");
                 dos.flush();
                 dos.writeBytes(f.length() + "\r\n");
@@ -334,7 +333,7 @@ public class Cliente {
                     throw new RuntimeException(ex);
                 }
             } else {
-                System.out.println("El fichero introducido no existe en el disco duro.");
+                System.err.println("El fichero introducido no existe en el disco duro.");
                 dos.writeBytes("Salir\r\n");
                 dos.flush();
             }
@@ -346,35 +345,46 @@ public class Cliente {
 
     private static void subirCarpeta(String pathDirNube, String pathDirPadreNube, String pathDirLocal,
                                      DataOutputStream dos, DataInputStream dis) {
-        File dirLocal = new File(pathDirLocal);
-        File[] subFichs = dirLocal.listFiles();
-        if (subFichs != null && subFichs.length > 0) {
-            for (File item : subFichs) {
-                String pathFichNube;
-                if (pathDirPadreNube.equals("")) {
-                    pathFichNube = pathDirNube + "\\" + item.getName();
-                } else {
-                    pathFichNube = pathDirNube + "\\" + pathDirPadreNube + "\\" + item.getName();
-                }
+        try {
+            File dirLocal = new File(pathDirLocal);
+            if (dirLocal.exists() && dirLocal.isDirectory()){
+                File[] subFichs = dirLocal.listFiles();
+                if (subFichs != null && subFichs.length > 0) {
+                    for (File item : subFichs) {
+                        String pathFichNube;
+                        if (pathDirPadreNube.equals("")) {
+                            pathFichNube = pathDirNube + "\\" + item.getName();
+                        } else {
+                            pathFichNube = pathDirNube + "\\" + pathDirPadreNube + "\\" + item.getName();
+                        }
 
-                if (item.isFile()) {
-                    System.out.println("Subiendo fichero: " + item.getAbsolutePath());
-                    subirFichero(item.getAbsolutePath(), dos);
-                } else {
-                    if (crearDirectorioRemoto(pathFichNube, dos, dis)) {
-                        String direc = pathFichNube.replace("src\\nube\\", "");
-                        System.out.println("Directorio " + direc + " creado correctamente en la nube");
-                    }
-                    String padre = pathDirPadreNube + "\\" + item.getName();
-                    if (pathDirPadreNube.equals("")) {
-                        padre = item.getName();
-                    }
-                    pathDirLocal = item.getAbsolutePath();
-                    subirCarpeta(pathDirNube, padre, pathDirLocal, dos, dis);
+                        if (item.isFile()) {
+                            System.out.println("Subiendo fichero: " + item.getAbsolutePath());
+                            subirFichero(item.getAbsolutePath(), dos);
+                        } else {
+                            if (crearDirectorioRemoto(pathFichNube, dos, dis)) {
+                                String direc = pathFichNube.replace("src\\nube\\", "");
+                                System.out.println("Directorio " + direc + " creado correctamente en la nube");
+                            }
+                            String padre = pathDirPadreNube + "\\" + item.getName();
+                            if (pathDirPadreNube.equals("")) {
+                                padre = item.getName();
+                            }
+                            pathDirLocal = item.getAbsolutePath();
+                            subirCarpeta(pathDirNube, padre, pathDirLocal, dos, dis);
 
+                        }
+                    }
                 }
+            } else {
+                System.err.println("La ruta introducida no es válida.");
+                dos.writeBytes("error\r\n");
+                dos.flush();
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
 
     }
 
@@ -400,8 +410,8 @@ public class Cliente {
             String respuesta = dis.readLine();
             switch (respuesta) {
                 case "OK" -> System.out.println("Fichero borrado correctamente.");
-                case "ERROR" -> System.out.println("Error al intentar borrar fichero introducido.");
-                case "DIRECTORIO" -> System.out.println("Error: La ruta introducida se corresponde con un directorio.");
+                case "ERROR" -> System.err.println("El fichero introducido no existe en la nube");
+                case "DIRECTORIO" -> System.err.println("La ruta introducida se corresponde con un directorio.");
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -417,19 +427,39 @@ public class Cliente {
         }
     }
 
-    private static void descargarFichero(String nombre, String dirSalida, DataOutputStream dos, DataInputStream dis) {
+    private static void descargarFichero(String nombre, File dirSalida, DataOutputStream dos, DataInputStream dis) {
         try {
-            dos.writeBytes("CORRECTO\r\n");
-            dos.flush();
-            long tam = Long.parseLong(dis.readLine());
-            try (FileOutputStream fos = new FileOutputStream(dirSalida + "\\" + obtenerNombreDesdeRuta(nombre))) {
-                byte[] buf = new byte[(int) tam];
-                dis.readFully(buf, 0, buf.length);
-                fos.write(buf, 0, buf.length);
-                fos.flush();
+            String res = "s";
+            if (dirSalida.exists() && dirSalida.isDirectory()){
+                dos.writeBytes("CORRECTO\r\n");
+                dos.flush();
+                long tam = Long.parseLong(dis.readLine());
+                File ficheroEnLocal = new File(dirSalida + "\\" + obtenerNombreDesdeRuta(nombre));
+                if (ficheroEnLocal.exists()){
+                    System.out.println("Ya existe un fichero en el directorio local con ese nombre, ¿Desea reemplazarlo? (S/N)");
+                    Scanner s = new Scanner(System.in);
+                    res= s.nextLine();
+                    while (!res.equalsIgnoreCase("s") && !res.equalsIgnoreCase("n")){
+                        System.out.println("Ya existe un fichero en el directorio local con ese nombre, ¿Desea reemplazarlo? (S/N)");
+                        res = s.nextLine();
+                    }
+                }
+                dos.writeBytes(res + "\r\n");
+                dos.flush();
+                if (res.equalsIgnoreCase("s")){
+                    try (FileOutputStream fos = new FileOutputStream(dirSalida + "\\" + obtenerNombreDesdeRuta(nombre))) {
+                        byte[] buf = new byte[(int) tam];
+                        dis.readFully(buf, 0, buf.length);
+                        fos.write(buf, 0, buf.length);
+                        fos.flush();
+                    }
+                    System.out.println("Fichero descargado en " + dirSalida + " correctamente.");
+                }
+            } else {
+                dos.writeBytes("ERROR\r\n");
+                dos.flush();
+                System.err.println("La ruta local en la que descargar el fichero no es válida");
             }
-            System.out.println("Fichero descargado en " + dirSalida + " correctamente.");
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (NumberFormatException nfe) {
@@ -484,7 +514,7 @@ public class Cliente {
         try {
             dos.writeBytes(entrada + "\r\n");
             dos.flush();
-            descargarFichero(entrada + ".zip", salida, dos, dis);
+            descargarFichero(entrada + ".zip", new File(salida), dos, dis);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

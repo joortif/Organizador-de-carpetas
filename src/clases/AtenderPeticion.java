@@ -70,45 +70,61 @@ public class AtenderPeticion implements Runnable {
             }
             ps.print("Bienvenido " + nom + "\r\n");
             int j = 0;
-            while (j != 12) {
+            while (j != 15) {
                 Usuario usuario;
                 String nombre;
                 j = Integer.parseInt(dis.readLine());
+                usuario = (Usuario) ois.readObject();
                 switch (j) {
                     case 1:
-                        usuario = (Usuario) ois.readObject();
                         nombre = dis.readLine();
                         if (!nombre.equals("Salir")){
                             recibirFichero(nombre, "", usuario);
                         }
                         break;
                     case 2:
-                        usuario = (Usuario) ois.readObject();
-                        File dirBase = new File(dis.readLine());
-                        if (dirBase.mkdir()){
-                            dos.writeBytes("OK\r\n");
-                        } else {
-                            dos.writeBytes("ERROR\r\n");
+
+                        nombre = dis.readLine();
+                        if (!nombre.equals("error")){
+
+                            recibirCarpeta(usuario, nombreDesdeRuta(nombre));
                         }
-                        dos.flush();
-                        recibirCarpeta(usuario, dirBase.getName());
                         break;
                     case 3:
-                        enviarFichero(dis.readLine());
+                        nombre = dis.readLine();
+                        File fichero = new File(usuario.getDirectorioCompleto() + "\\" + nombre);
+                        if (fichero.exists() && fichero.isFile()){
+                            dos.writeBoolean(true);
+                            dos.flush();
+                            enviarFichero(fichero);
+                        } else {
+                            dos.writeBoolean(false);
+                            dos.flush();
+                        }
+
                         break;
                     case 4:
-                        boolean existe = comprobarDirectorio();
-                        dos.writeBoolean(existe);
-                        if (dis.readLine().equalsIgnoreCase("ok")){
-                            String carpetaEnNube = dis.readLine();
-                            String carpetaDestinoLocal = dis.readLine();
-                            enviarCarpeta(carpetaDestinoLocal, nombreDesdeRuta(carpetaEnNube) , "src\\nube\\" + carpetaEnNube);
+                        nombre = dis.readLine();
+                        File directorio = new File(usuario.getDirectorioCompleto() + "\\" + nombre);
+                        if (directorio.exists() && directorio.isDirectory()){
+                            dos.writeBoolean(true);
+                            dos.flush();
+                            if (dis.readLine().equalsIgnoreCase("s")){
+                                if (dis.readLine().equalsIgnoreCase("ok")){
+                                    String carpetaEnNube = dis.readLine();
+                                    String carpetaDestinoLocal = dis.readLine();
+                                    enviarCarpeta(carpetaDestinoLocal, nombreDesdeRuta(carpetaEnNube) , usuario.getDirectorioCompleto() + "\\" + carpetaEnNube);
+                                    dos.writeBytes("\r\n");
+                                    dos.flush();
+                                }
+                            }
+                        } else {
+                            dos.writeBoolean(false);
+                            dos.flush();
                         }
-                        dos.writeBytes("\r\n");
-                        dos.flush();
+
                         break;
                     case 5:
-                        usuario = (Usuario) ois.readObject();
                         File fich = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
                         if (fich.isDirectory()){
                             dos.writeBytes("DIRECTORIO\r\n");
@@ -118,36 +134,31 @@ public class AtenderPeticion implements Runnable {
                         }
                         break;
                     case 6:
-                        usuario = (Usuario) ois.readObject();
                         File dirABorrar = new File(usuario.getDirectorioCompleto() + "\\" + dis.readLine());
                         if (dirABorrar.exists() && dirABorrar.isDirectory()){
                             borrarDirectorioNoVacio(dirABorrar.getAbsolutePath(), "");
+                            dos.writeBytes("\r\n");
+                            dos.flush();
                         } else {
                             dos.writeBytes("ERROR\r\n");
+                            dos.flush();
                         }
-                        dos.flush();
-                        dos.writeBytes("\r\n");
-                        dos.flush();
                         break;
                     case 7:
                         String dir = dis.readLine();
-                        usuario = (Usuario) ois.readObject();
                         crearDirectorio(dir, usuario);
                         break;
                     case 8:
-                        usuario = (Usuario) ois.readObject();
+
                         mostrarDirec(usuario);
                         break;
                     case 9:
                         String dirC = dis.readLine();
-                        usuario = (Usuario) ois.readObject();
+
                         cambiarDirec(dirC, usuario, oos);
                         break;
                     case 10:
-                        usuario = (Usuario) ois.readObject();
                         usuario.subirDirectorioPadre();
-                        oos.writeObject(usuario);
-                        oos.flush();
                         break;
                     case 11:
                         break;
@@ -156,24 +167,34 @@ public class AtenderPeticion implements Runnable {
                     case 13:
                         break;
                     case 14:
-                        existe = comprobarDirectorio();
-                        if (existe){
-                            dos.writeBoolean(existe);
+                        nombre = dis.readLine();
+                        File dirZIP = new File(usuario.getDirectorioCompleto() + "\\" + nombre);
+                        if (dirZIP.exists() && dirZIP.isDirectory()){
+                            dos.writeBoolean(true);
+                            dos.flush();
                             nombre = dis.readLine();
-                            String nomF = "src\\nube\\" + nombre;
-                            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(nomF + ".zip"));
+                            if (!nombre.equalsIgnoreCase("ERROR")){
+                                String nomF = usuario.getDirectorioCompleto() + "\\" + nombre;
+                                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(nomF + ".zip"));
 
-                            File fichAComprimir = new File(nomF);
-                            comprimirZip(fichAComprimir, fichAComprimir.getName(), zos);
-                            zos.close();
-                            enviarFichero(nombre + ".zip"); //Se envia el .zip
-                            File fichZip = new File(nomF + ".zip");
-                            fichZip.delete(); //Se borra el .zip de la nube despues de enviarlo
+                                File fichAComprimir = new File(nomF);
+                                comprimirZip(fichAComprimir, fichAComprimir.getName(), zos);
+                                zos.close();
+                                enviarFichero(new File(nomF + ".zip")); //Se envia el .zip
+                                File fichZip = new File(nomF + ".zip");
+                                fichZip.delete(); //Se borra el .zip de la nube despues de enviarlo
+                            }
+                        } else {
+                            dos.writeBoolean(false);
+                            dos.flush();
                         }
+
                         break;
                     default:
                         break;
                 }
+                oos.writeObject(usuario);
+                oos.flush();
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -237,7 +258,7 @@ public class AtenderPeticion implements Runnable {
         try {
             String nomF;
             if (!dir.equals("")){
-                nomF = convertirARutaNube(ruta, dir);
+                nomF =ruta;
             } else {
                 nomF = nombreDesdeRuta(ruta);
             }
@@ -259,12 +280,21 @@ public class AtenderPeticion implements Runnable {
 
     private void recibirCarpeta(Usuario u, String dirRaiz) {
         try {
-            String dir = dirRaiz;
-            String nom = dis.readLine();
+            String dir = u.getDirectorioCompleto() + "\\" + dirRaiz;
+            String nom = dirRaiz;
+            String padreAnt = "";
+            String padre;
             while (!nom.equals("")) {
-                if (esDirectorio(nom)){
-                    dir = dir + "\\" + nombreDesdeRuta(nom);
-                    File dirNube = new File(nom);
+                padre = obtenerDirPadre(nom);
+                if (esDirectorio(nom)){ //Mira si tiene extensión (.txt, .jpg...)
+                    if (!nom.equals(dirRaiz)){
+                        if (padre.equals(padreAnt)){
+                            dir = nom;
+                        } else {
+                            dir = dir + "\\" + nombreDesdeRuta(nom);
+                        }
+                    }
+                    File dirNube = new File(dir);
                     if (dirNube.mkdir()){
                         dos.writeBytes("OK\r\n");
                         dos.flush();
@@ -273,14 +303,25 @@ public class AtenderPeticion implements Runnable {
                         dos.flush();
                     }
                 } else {
-                    recibirFichero(nom, dir, u);
+                    int indice = dir.indexOf(u.getDirectorioCompleto())+u.getDirectorioCompleto().length()+1;
+                    String subdir = dir.substring(indice);
+                    recibirFichero(convertirARutaNube(nom, subdir), dir, u);
                 }
+                padreAnt = padre;
                 nom = dis.readLine();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private static String obtenerDirPadre(String ruta){
+        String[] trozos = ruta.split(Pattern.quote(System.getProperty("file.separator")));
+        if (trozos.length >=3){
+            return trozos[trozos.length - 2];
+        } else {
+            return ruta;
+        }
 
     }
 
@@ -336,8 +377,6 @@ public class AtenderPeticion implements Runnable {
                 dos.writeBytes("El directorio introducido no existe\r\n");
                 dos.flush();
             }
-            oos.writeObject(usuario);
-            oos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -429,32 +468,24 @@ public class AtenderPeticion implements Runnable {
         }
     }
 
-    private static void enviarFichero(String rutaEnNube){
+    private static void enviarFichero(File fichEnNube){
         try {
-            File fichEnNube = new File("src\\nube\\" + rutaEnNube);
-            if (fichEnNube.exists() && fichEnNube.isFile()){
                 String msg = dis.readLine();
                 if (msg.equalsIgnoreCase("correcto")){
                     dos.writeBytes(fichEnNube.length() + "\r\n");
                     dos.flush();
+                    if (dis.readLine().equalsIgnoreCase("s")){
+                        try (FileInputStream fs = new FileInputStream(fichEnNube);
+                             DataInputStream fis = new DataInputStream(fs)){
 
-                    try (FileInputStream fs = new FileInputStream(fichEnNube);
-                         DataInputStream fis = new DataInputStream(fs)){
+                            byte[] buf = new byte[(int) fichEnNube.length()];
+                            fis.readFully(buf, 0, buf.length);
+                            dos.write(buf,0,buf.length);
+                            dos.flush();
 
-                        byte[] buf = new byte[(int) fichEnNube.length()];
-                        fis.readFully(buf, 0, buf.length);
-                        dos.write(buf,0,buf.length);
-                        dos.flush();
-
+                        }
                     }
-                } else {
-                    dos.writeBytes("ERROR\r\n");
-                    dos.flush();
                 }
-            } else {
-                dos.writeBytes("ERROR\r\n");
-                dos.flush();
-            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -553,14 +584,6 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private static boolean comprobarDirectorio(){
-        try {
-            File directorio = new File("src\\nube\\" + dis.readLine());
-            return (directorio.exists() && directorio.isDirectory());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 
