@@ -1,6 +1,5 @@
 package clases;
 
-import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -213,6 +212,28 @@ public class Cliente {
 
                                                 break;
                                             case 11:
+                                                System.out.println("Introduce el nombre del usuario con el que deseas compartir el fichero");
+                                                input = s.nextLine();
+                                                dos.writeBytes(input + "\r\n");
+                                                dos.flush();
+                                                if (dis.readBoolean()){ //Servidor comprueba si existe
+                                                    System.out.println("Introduce la ruta (desde el directorio actual) del fichero que se desea compartir");
+                                                    String nomFich = s.nextLine();
+                                                    dos.writeBytes(nomFich + "\r\n");
+                                                    dos.flush();
+                                                    res = dis.readLine();
+                                                    if (res.equals("DIRECTORIO")){
+                                                        System.err.println("La ruta introducida se corresponde con un directorio");
+                                                    } else if (res.equals("NO EXISTE")){
+                                                        System.err.println("La ruta introducida no existe");
+                                                    } else {
+                                                        System.out.println("Se compartirá el fichero en la carpeta raíz del usuario " + input);
+                                                        compartirFichero(input, dis, dos);
+                                                        System.out.println("Fichero compartido correctamente");
+                                                    }
+                                                } else {
+                                                    System.err.println("El usuario introducido no está registrado en el sistema");
+                                                }
                                                 break;
                                             case 12:
                                                 user.mostrarCorreo();
@@ -528,5 +549,35 @@ public class Cliente {
         return archivoYExt.length <= 1;
     }
 
+    private static void compartirFichero(String usuario, DataInputStream dis, DataOutputStream dos){
+        try {
+            Scanner s = new Scanner(System.in);
+            String res = dis.readLine();
+            if (res.equals("CORRECTO")){
+
+            } else {
+                System.out.println("Ya existe un fichero con ese nombre en el directorio raíz de " + usuario);
+                System.out.println("Es necesario cambiarle el nombre. ¿Desea continuar? (S/N)");
+                res = s.nextLine();
+                while (!res.equalsIgnoreCase("s") && !res.equalsIgnoreCase("n")){
+                    System.out.println("Respuesta no válida. ¿Desea continuar? (S/N)");
+                    res = s.nextLine();
+                }
+                if (res.equalsIgnoreCase("s")){
+                    System.out.println("Introduce el nuevo nombre del fichero");
+                    String nomF = s.nextLine();
+                    dos.writeBytes(nomF + "\r\n");
+                    dos.flush();
+                    compartirFichero(usuario, dis, dos);
+                } else {
+                    dos.writeBytes("\r\n");
+                    dos.flush();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
 }

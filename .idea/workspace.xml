@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Comprimir a zip hecho">
+    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Código repasado y mejorado">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/clases/Servidor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Servidor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Usuario.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -206,7 +208,14 @@
       <option name="project" value="LOCAL" />
       <updated>1672243300969</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Código repasado y mejorado">
+      <created>1672413117420</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1672413117420</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -236,7 +245,8 @@
     <MESSAGE value="Descargar ficheros de la nube hecho, hacer descargar carpetas" />
     <MESSAGE value="Descargar carpetas hecho, retocar arreglar casos raros" />
     <MESSAGE value="Comprimir a zip hecho" />
-    <option name="LAST_COMMIT_MESSAGE" value="Comprimir a zip hecho" />
+    <MESSAGE value="Código repasado y mejorado" />
+    <option name="LAST_COMMIT_MESSAGE" value="Código repasado y mejorado" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -248,10 +258,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>552</line>
+          <line>590</line>
           <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
+          <line>552</line>
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
+          <line>224</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/ProyectoSD$Cliente.ic" NAME="Cliente Coverage Results" MODIFIED="1672661036863" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>

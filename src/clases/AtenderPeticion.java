@@ -17,23 +17,22 @@ public class AtenderPeticion implements Runnable {
     private static final DecimalFormat df = new DecimalFormat("0.00");
     private static DataInputStream dis;
     private static DataOutputStream dos;
+    private ConcurrentLinkedQueue<Usuario> listaU;
 
-    public AtenderPeticion(Socket socket) throws IOException {
+    public AtenderPeticion(Socket socket, ConcurrentLinkedQueue<Usuario> l) throws IOException {
         FichUsuarios = new File("src\\usuarios\\Usuarios.txt");
         this.socket = socket;
         this.usuarios = this.cargarUsuarios(FichUsuarios);
         dis = new DataInputStream(this.socket.getInputStream());
         dos = new DataOutputStream(this.socket.getOutputStream());
+        this.listaU = l;
     }
 
 
     public void run() {
-        ObjectOutputStream oos = null;
-        ObjectInputStream ois = null;
-        try (PrintStream ps = new PrintStream(this.socket.getOutputStream(), true)){
-            oos = new ObjectOutputStream((this.socket.getOutputStream()));
-            ois = new ObjectInputStream(this.socket.getInputStream());
-
+        try (PrintStream ps = new PrintStream(this.socket.getOutputStream(), true);
+             ObjectOutputStream oos = new ObjectOutputStream(this.socket.getOutputStream());
+             ObjectInputStream ois = new ObjectInputStream(this.socket.getInputStream())){
 
             int i = Integer.parseInt(dis.readLine());
             String nom = null;
@@ -161,6 +160,24 @@ public class AtenderPeticion implements Runnable {
                         usuario.subirDirectorioPadre();
                         break;
                     case 11:
+                        String nomUsu = dis.readLine();
+                        if (existeUsuario(nomUsu)){
+                            String nomFich = dis.readLine();
+                            File fichCompartir = new File(usuario.getDirectorioCompleto() + "\\" + nomFich);
+                            if (fichCompartir.exists()){
+                                if (fichCompartir.isFile()){
+                                    dos.writeBytes("CORRECTO\r\n");
+                                    dos.flush();
+                                    copiarFichero(new Usuario(nomUsu), fichCompartir, fichCompartir.getName());
+                                } else {
+                                    dos.writeBytes("DIRECTORIO\r\n");
+                                    dos.flush();
+                                }
+                            } else {
+                                dos.writeBytes("NO EXISTE\r\n");
+                                dos.flush();
+                            }
+                        }
                         break;
                     case 12:
                         break;
@@ -198,21 +215,42 @@ public class AtenderPeticion implements Runnable {
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                if (oos != null) {
-                    oos.close();
-                    ois.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
 
     }
 
+    private void copiarFichero(Usuario usuDest, File fich, String nomF) {
+        try {
+            File fichDestino = new File(usuDest.getDirectorioCompleto() + "\\" + nomF);
+            if (fichDestino.exists()){
+                dos.writeBytes("REPETIDO\r\n");
+                dos.flush();
+                String nombreNuevo = dis.readLine();
+                if (!nombreNuevo.equals("")){
+                    copiarFichero(usuDest, fich, nombreNuevo);
+                }
+            } else {
+                dos.writeBytes("CORRECTO\r\n");
+                dos.flush();
+                try (FileOutputStream fos = new FileOutputStream(fichDestino);
+                     FileInputStream fis = new FileInputStream(fich)) {
+                    byte[] buf = new byte[1024*1024];
+                    int leidos;
 
+                    while ((leidos = fis.read(buf)) != -1){
+                        fos.write(buf, 0, leidos);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
 
     private ConcurrentHashMap<String, String> cargarUsuarios(File fich) {
         ConcurrentHashMap<String, String> listaU = new ConcurrentHashMap<>();
@@ -581,6 +619,18 @@ public class AtenderPeticion implements Runnable {
             throw new RuntimeException(e);
         }
 
+
+    }
+
+    private boolean existeUsuario(String usu){
+        try {
+            this.usuarios = cargarUsuarios(FichUsuarios); //Se "refresca" la lista de usuarios antes de comprobar si existe usu
+            boolean existe = this.usuarios.containsKey(usu);
+            dos.writeBoolean(existe);
+            return existe;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 

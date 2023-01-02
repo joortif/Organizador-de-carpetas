@@ -17,6 +17,10 @@ public class Usuario implements Serializable {
         this.correo = new ArrayList<>();
     }
 
+    public String getNombre(){
+        return this.nombre;
+    }
+
     public String getDirectorioCompleto(){
         return this.directorio;
     }
@@ -58,7 +62,14 @@ public class Usuario implements Serializable {
         this.correo = null;
     }
 
+    public boolean equals(Object usu) {
+        if (usu != null){
+            if (usu instanceof Usuario){
+                return ((Usuario) usu).nombre.equals(this.nombre);
+            }
+        }
+        return false;
 
 
-
+    }
 }
