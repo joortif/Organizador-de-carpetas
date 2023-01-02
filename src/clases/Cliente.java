@@ -318,18 +318,20 @@ public class Cliente {
         String respuesta;
         try {
             System.out.println("Introduce el nombre del nuevo usuario: ");
-            dos.writeBytes(s.nextLine() + "\r\n");
+            String nom = s.nextLine();
+            dos.writeBytes(nom+ "\r\n");
             dos.flush();
             respuesta = dis.readLine();
             while (!respuesta.equals("Correcto")) {
                 System.out.println(respuesta);
                 System.out.println("Introduce el nombre del nuevo usuario: ");
-                dos.writeBytes(s.nextLine() + "\r\n");
+                dos.writeBytes(nom + "\r\n");
                 dos.flush();
                 respuesta = dis.readLine();
             }
             System.out.println("Introduce la contraseña: ");
-            dos.writeBytes(s.nextLine() + "\r\n");
+            String pwd = s.nextLine();
+            dos.writeBytes(pwd + "\r\n");
             dos.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

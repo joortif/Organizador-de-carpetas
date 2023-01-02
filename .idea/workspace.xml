@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Código repasado y mejorado">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="11b93ada-4c30-4b37-a2d4-97b56535e1cc" name="Changes" comment="Compartir ficheros hecho, sincronizar">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/AtenderPeticion.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Cliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Cliente.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/clases/Servidor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Servidor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/clases/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/clases/Usuario.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +48,7 @@
     </key>
   </component>
   <component name="RunManager" selected="Application.Cliente">
-    <configuration name="Cliente" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+    <configuration name="Cliente" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="clases.Cliente" />
       <module name="ProyectoSD" />
       <method v="2">
@@ -77,6 +75,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.IO5" />
+      <item itemvalue="Application.Cliente" />
+      <item itemvalue="Application.Servidor" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.Cliente" />
@@ -215,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1672413117420</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Compartir ficheros hecho, sincronizar">
+      <created>1672662044531</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1672662044532</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -246,7 +256,8 @@
     <MESSAGE value="Descargar carpetas hecho, retocar arreglar casos raros" />
     <MESSAGE value="Comprimir a zip hecho" />
     <MESSAGE value="Código repasado y mejorado" />
-    <option name="LAST_COMMIT_MESSAGE" value="Código repasado y mejorado" />
+    <MESSAGE value="Compartir ficheros hecho, sincronizar" />
+    <option name="LAST_COMMIT_MESSAGE" value="Compartir ficheros hecho, sincronizar" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -258,18 +269,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>590</line>
+          <line>591</line>
           <option name="timeStamp" value="22" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/clases/Cliente.java</url>
-          <line>552</line>
-          <option name="timeStamp" value="27" />
+          <line>28</line>
+          <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/clases/AtenderPeticion.java</url>
-          <line>224</line>
-          <option name="timeStamp" value="31" />
+          <line>39</line>
+          <option name="timeStamp" value="34" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

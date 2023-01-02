@@ -10,13 +10,12 @@ import java.util.concurrent.Executors;
 public class Servidor {
     public static void main(String[] args) {
         ExecutorService pool = Executors.newCachedThreadPool();
-        ConcurrentLinkedQueue<Usuario> listaUsuarios = new ConcurrentLinkedQueue<>();
 
         try (ServerSocket server = new ServerSocket(6666)){
             System.out.println("SERVIDOR INICIADO");
             while (true) {
                 Socket cliente = server.accept();
-                AtenderPeticion ap = new AtenderPeticion(cliente, listaUsuarios);
+                AtenderPeticion ap = new AtenderPeticion(cliente);
                 pool.execute(ap);
             }
 

@@ -13,19 +13,16 @@ public class AtenderPeticion implements Runnable {
 
     private Socket socket;
     private ConcurrentHashMap<String, String> usuarios;
-    private static File FichUsuarios;
+    private static final File FichUsuarios = new File("src\\usuarios\\Usuarios.txt");
     private static final DecimalFormat df = new DecimalFormat("0.00");
     private static DataInputStream dis;
     private static DataOutputStream dos;
-    private ConcurrentLinkedQueue<Usuario> listaU;
 
-    public AtenderPeticion(Socket socket, ConcurrentLinkedQueue<Usuario> l) throws IOException {
-        FichUsuarios = new File("src\\usuarios\\Usuarios.txt");
+    public AtenderPeticion(Socket socket) throws IOException {
         this.socket = socket;
-        this.usuarios = this.cargarUsuarios(FichUsuarios);
+        this.usuarios = this.cargarUsuarios();
         dis = new DataInputStream(this.socket.getInputStream());
         dos = new DataOutputStream(this.socket.getOutputStream());
-        this.listaU = l;
     }
 
 
@@ -61,10 +58,13 @@ public class AtenderPeticion implements Runnable {
                     }
                     ps.print(mensaje);
                     psw = dis.readLine();
-                    PrintWriter outUsu = new PrintWriter(new BufferedWriter(new FileWriter(FichUsuarios, true)), true);
-                    outUsu.println(nom + "-" + psw);
-                    outUsu.close();
-                    new File("src\\nube\\" + nom).mkdirs();
+                    synchronized (FichUsuarios){
+                        PrintWriter outUsu = new PrintWriter(new BufferedWriter(new FileWriter(FichUsuarios, true)), true);
+                        outUsu.println(nom + "-" + psw);
+                        outUsu.close();
+                        new File("src\\nube\\" + nom).mkdirs();
+                    }
+
                 }
             }
             ps.print("Bienvenido " + nom + "\r\n");
@@ -252,11 +252,11 @@ public class AtenderPeticion implements Runnable {
 
     }
 
-    private ConcurrentHashMap<String, String> cargarUsuarios(File fich) {
+    private synchronized ConcurrentHashMap<String, String> cargarUsuarios() {
         ConcurrentHashMap<String, String> listaU = new ConcurrentHashMap<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fich)))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(AtenderPeticion.FichUsuarios)))) {
             String linea = br.readLine();
-            while (linea != null) {
+            while (linea != null && !linea.equals("")) {
                 String[] usrYpsw = linea.split("-");
                 listaU.put(usrYpsw[0], usrYpsw[1]);
                 linea = br.readLine();
@@ -283,7 +283,8 @@ public class AtenderPeticion implements Runnable {
     }
 
     private String altaUsuario(String usr) {
-        String mensaje;
+        this.usuarios = cargarUsuarios(); //Como es synchronized, se dentendrá aqui si hay dos AtenderPeticiones que lleguen A LA VEZ.
+        String mensaje;                   //De esta forma se busca evitar tener dos usuarios con el mismo nombre, incluso si se registran "a la vez"
         if (this.usuarios.containsKey(usr)) {
             mensaje = "El usuario ya existe en el sistema. \r\n";
         } else {
@@ -624,7 +625,7 @@ public class AtenderPeticion implements Runnable {
 
     private boolean existeUsuario(String usu){
         try {
-            this.usuarios = cargarUsuarios(FichUsuarios); //Se "refresca" la lista de usuarios antes de comprobar si existe usu
+            this.usuarios = cargarUsuarios(); //Se "refresca" la lista de usuarios antes de comprobar si existe usu
             boolean existe = this.usuarios.containsKey(usu);
             dos.writeBoolean(existe);
             return existe;
