@@ -73,13 +73,11 @@ public class Cliente {
                                     System.out.println("9. Cambiar de directorio");
                                     System.out.println("10. Ir al directorio padre");
                                     System.out.println("11. Compartir un fichero con otro usuario");
-                                    System.out.println("12. Mostrar correo");
-                                    System.out.println("13. Vaciar correo");
-                                    System.out.println("14. Comprimir y descargar una carpeta");
-                                    System.out.println("15. Salir");
+                                    System.out.println("12. Comprimir y descargar una carpeta");
+                                    System.out.println("13. Salir");
                                     j = Integer.parseInt(s.nextLine());
 
-                                    if (j > 0 && j < 16) {
+                                    if (j > 0 && j < 14) {
                                         dos.writeBytes(j + "\r\n");
                                         dos.flush();
                                         oos.writeObject(user);
@@ -87,13 +85,13 @@ public class Cliente {
                                         switch (j) {
                                             case 1:
 
-                                                System.out.println("Introduce la ruta (desde el directorio actual) del fichero a subir ");
+                                                System.out.println("Introduce la ruta (local) del fichero a subir ");
                                                 input = s.nextLine();
                                                 subirFichero(input, dos);
                                                 break;
                                             case 2:
 
-                                                System.out.println("Introduce la ruta (desde el directorio actual) de la carpeta a subir");
+                                                System.out.println("Introduce la ruta (local) de la carpeta a subir");
                                                 input = s.nextLine();
                                                 File dir = new File(input);
                                                 if (dir.exists() && dir.isDirectory()){
@@ -236,12 +234,6 @@ public class Cliente {
                                                 }
                                                 break;
                                             case 12:
-                                                user.mostrarCorreo();
-                                                break;
-                                            case 13:
-                                                user.vaciarCorreo();
-                                                break;
-                                            case 14:
                                                 System.out.println("Introduce la ruta (desde el directorio raíz) de la carpeta a descargar");
                                                 input = s.nextLine();
                                                 dos.writeBytes(input + "\r\n");
@@ -269,7 +261,7 @@ public class Cliente {
                                 } catch (ClassNotFoundException e) {
                                     throw new RuntimeException(e);
                                 }
-                            } while (j != 15);
+                            } while (j != 13);
                         }
 
                     }
@@ -282,8 +274,10 @@ public class Cliente {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            ois.close();
-            oos.close();
+            if (ois != null && oos != null){
+                ois.close();
+                oos.close();
+            }
         }
     }
 

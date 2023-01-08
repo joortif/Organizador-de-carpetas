@@ -69,7 +69,7 @@ public class AtenderPeticion implements Runnable {
             }
             ps.print("Bienvenido " + nom + "\r\n");
             int j = 0;
-            while (j != 15) {
+            while (j != 13) {
                 Usuario usuario;
                 String nombre;
                 j = Integer.parseInt(dis.readLine());
@@ -180,10 +180,6 @@ public class AtenderPeticion implements Runnable {
                         }
                         break;
                     case 12:
-                        break;
-                    case 13:
-                        break;
-                    case 14:
                         nombre = dis.readLine();
                         File dirZIP = new File(usuario.getDirectorioCompleto() + "\\" + nombre);
                         if (dirZIP.exists() && dirZIP.isDirectory()){
@@ -215,6 +211,12 @@ public class AtenderPeticion implements Runnable {
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 

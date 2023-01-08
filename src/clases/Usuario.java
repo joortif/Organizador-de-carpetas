@@ -1,7 +1,6 @@
 package clases;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class Usuario implements Serializable {
@@ -9,12 +8,10 @@ public class Usuario implements Serializable {
     private static final long serialVersionUID = 111L;
     private String nombre;
     private String directorio;
-    private ArrayList<Mensaje> correo;
 
     public Usuario(String n){
         this.nombre = n;
         this.directorio = "src\\nube\\" + n;
-        this.correo = new ArrayList<>();
     }
 
     public String getNombre(){
@@ -43,23 +40,6 @@ public class Usuario implements Serializable {
         if (!dir.toString().equals("src\\nube")){
             this.directorio = dir.toString();
         }
-    }
-
-    public void mostrarCorreo(){
-        if (this.correo.isEmpty()){
-            System.out.println("Correo vacío");
-        } else {
-            for (Mensaje m: this.correo) {
-                System.out.println("--------------------------------------------------------------");
-                System.out.println(m.toString());
-                System.out.println("--------------------------------------------------------------");
-            }
-        }
-
-    }
-
-    public void vaciarCorreo(){
-        this.correo = null;
     }
 
     public boolean equals(Object usu) {
